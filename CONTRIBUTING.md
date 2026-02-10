@@ -1,0 +1,62 @@
+# Contributing to PDF Text-to-Speech Reader
+
+Thank you for your interest in contributing! 🎉
+
+## How to Contribute
+
+### Reporting Bugs
+1. Check [existing issues](../../issues) to avoid duplicates
+2. Open a new issue with:
+   - Browser name and version
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Screenshots if applicable
+
+### Suggesting Features
+1. Open an issue with the tag `enhancement`
+2. Describe the feature and why it would be useful
+3. Include mockups or examples if possible
+
+### Submitting Code
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Make your changes
+4. Test thoroughly in Chrome and Edge
+5. Commit with a clear message: `git commit -m "Add: description of change"`
+6. Push to your fork: `git push origin feature/your-feature-name`
+7. Open a Pull Request
+
+### Development Setup
+
+```bash
+# Clone your fork
+git clone https://github.com/YOUR-USERNAME/pdf-text-to-speech-reader.git
+cd pdf-text-to-speech-reader
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Open in browser
+# http://localhost:5173
+
+Code Style
+Use TypeScript (.ts / .tsx)
+Follow existing code patterns
+Keep components focused and readable
+Use CSS variables for theming (defined in index.css)
+Areas Where Help is Welcome
+🌍 Internationalization (i18n)
+♿ Accessibility improvements
+📱 Mobile responsiveness
+🎨 UI/UX enhancements
+📝 Documentation
+🧪 Testing
+Code of Conduct
+Please read our Code of Conduct before contributing.
+
+Questions?
+Email: itbusinessanalystsandeep@gmail.com
+
