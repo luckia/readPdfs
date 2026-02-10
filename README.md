@@ -118,7 +118,7 @@ Most PDF readers don't have text-to-speech. The ones that do require cloud uploa
 
 ```bash
 # Clone the repository
-github.com/sandeep-analyst/pdf-text-to-speech-reader
+github.com/analystsandeep/pdf-text-to-speech-reader
 
 # Navigate to project folder
 cd pdf-text-to-speech-reader
