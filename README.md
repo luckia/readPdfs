@@ -1,2 +1,10 @@
-# pdf-text-to-speech-reader
-Free, private PDF reader with text-to-speech. Listen to any PDF with word-by-word highlighting, 50+ voices, adjustable speed, and dictionary lookup. Runs 100% locally in your browser — no uploads, no accounts, no data collection. Built with React + TypeScript + Vite.
+The only PDF reader that lets you listen to any PDF with real-time 
+word-by-word highlighting — completely free, completely private, 
+runs entirely in your browser. No uploads. No accounts. No data collection.
+
+Built for:
+→ Students who want to listen while studying
+→ Researchers processing long papers
+→ People with reading difficulties or visual impairments
+→ Professionals who prefer audio over reading
+→ Anyone who wants to multitask while consuming PDFs
