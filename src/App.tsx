@@ -47,9 +47,12 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Zoom state
+    // Zoom state
   const [scale, setScale] = useState<number | null>(null);
   const [zoomMode, setZoomMode] = useState<'fit-width' | 'custom'>('fit-width');
+
+  // Focus blur mode state
+  const [blurMode, setBlurMode] = useState(false);
 
   // Jump to page state
   const [jumpToPage, setJumpToPage] = useState('');
@@ -128,10 +131,15 @@ export default function App() {
     toast.themeChanged(themeNames[nextTheme]);
   }, [theme, toast]);
 
+ 
   const handleHighlightModeChange = useCallback(
     (mode: 'word' | 'sentence') => { speech.setHighlightMode(mode); },
     [speech]
   );
+
+  const handleBlurModeToggle = useCallback(() => {
+    setBlurMode((prev) => !prev);
+  }, []);
 
   useEffect(() => {
     speech.onComplete(() => { toast.readingComplete(); });
@@ -573,6 +581,8 @@ export default function App() {
               onHighlightModeChange={handleHighlightModeChange}
               onToggleVoicePicker={() => setShowVoicePicker((prev) => !prev)}
               isVoicePickerOpen={showVoicePicker}
+              blurMode={blurMode}
+              onBlurModeToggle={handleBlurModeToggle}
             />
           )}
 
@@ -614,6 +624,8 @@ export default function App() {
                 setZoomMode={setZoomMode}
                 jumpToPageFnRef={jumpToPageFnRef}
                 calculateFitWidthFnRef={calculateFitWidthFnRef}
+                blurMode={blurMode}
+                speechStatus={speech.status}
               />
             )}
           </div>

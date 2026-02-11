@@ -4,6 +4,9 @@
    
    UPGRADED: No toolbar — zoom/page controls
    moved to header. This is now pure PDF display.
+   
+   FIX APPLIED: Scroll position anchoring on zoom
+   to prevent page jumps.
    ======================================== */
 
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
@@ -35,6 +38,8 @@ interface PdfViewerProps {
   setZoomMode: React.Dispatch<React.SetStateAction<ZoomMode>>;
   jumpToPageFnRef: React.MutableRefObject<(pageNum: number) => void>;
   calculateFitWidthFnRef: React.MutableRefObject<() => number>;
+  blurMode: boolean;
+  speechStatus: string;
 }
 
 export default function PdfViewer({
@@ -47,12 +52,15 @@ export default function PdfViewer({
   onWordDoubleClick,
   onWordRightClick,
   onPageChange,
+  currentPage: _currentPage,
   scale,
   setScale,
   zoomMode,
   setZoomMode,
   jumpToPageFnRef,
   calculateFitWidthFnRef,
+  blurMode,
+  speechStatus,
 }: PdfViewerProps) {
   const [userScrolledAway, setUserScrolledAway] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -69,6 +77,11 @@ export default function PdfViewer({
   const scrollDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pageHeightsRef = useRef<Map<number, number>>(new Map());
 
+  // ========== FIX: Zoom scroll anchoring refs ==========
+  const previousScaleRef = useRef<number | null>(null);
+  const isZoomingRef = useRef(false);
+  // =====================================================
+
   const calculateFitWidth = useCallback(() => {
     const container = containerRef.current;
     if (!container || pdfData.pages.length === 0) return 1.0;
@@ -83,16 +96,26 @@ export default function PdfViewer({
     calculateFitWidthFnRef.current = calculateFitWidth;
   }, [calculateFitWidth, calculateFitWidthFnRef]);
 
-  const getEstimatedPageHeight = useCallback(
-    (pageIndex: number): number => {
-      const measured = pageHeightsRef.current.get(pageIndex);
-      if (measured) return measured;
-      const currentScale = scale || 1.0;
+  // ========== FIX: Pure calculation function for page height ==========
+  // This does NOT use cached/measured values — it computes deterministically
+  // from original dimensions and a given scale. This ensures consistent
+  // results before and after zoom.
+  const getPageHeightForScale = useCallback(
+    (pageIndex: number, atScale: number): number => {
       const pageData = pdfData.pages[pageIndex];
       if (!pageData) return 800;
-      return pageData.originalHeight * currentScale + 24;
+      return pageData.originalHeight * atScale + 12; // 12px = margin-bottom
     },
-    [scale, pdfData.pages]
+    [pdfData.pages]
+  );
+  // ====================================================================
+
+  const getEstimatedPageHeight = useCallback(
+    (pageIndex: number): number => {
+      const currentScale = scale || 1.0;
+      return getPageHeightForScale(pageIndex, currentScale);
+    },
+    [scale, getPageHeightForScale]
   );
 
   const updateVisiblePages = useCallback(() => {
@@ -152,6 +175,7 @@ export default function PdfViewer({
       if (container && container.clientWidth > 0) {
         const fitScale = calculateFitWidth();
         setScale(fitScale);
+        previousScaleRef.current = fitScale; // FIX: Initialize previous scale
         setIsReady(true);
       } else {
         requestAnimationFrame(tryCalculate);
@@ -221,11 +245,16 @@ export default function PdfViewer({
   }, [jumpToPage, jumpToPageFnRef]);
 
   // Scroll handler
+  // ========== FIX: Guard against scroll events during zoom ==========
   const handleScroll = useCallback(() => {
+    // Skip scroll processing during zoom transitions
+    if (isZoomingRef.current) return;
+
     if (scrollDebounceRef.current) {
       clearTimeout(scrollDebounceRef.current);
     }
     scrollDebounceRef.current = setTimeout(() => {
+      if (isZoomingRef.current) return; // Double-check after debounce
       updateVisiblePages();
     }, SCROLL_DEBOUNCE);
 
@@ -249,14 +278,112 @@ export default function PdfViewer({
       }
     }
   }, [currentWordIndex, isPlaying, pdfData.allWords, updateVisiblePages]);
+  // ==================================================================
 
-  // Recalculate on scale change
+  // ========== FIX: Scroll-anchored zoom transition ==========
+  // This is the CORE FIX. Instead of just clearing heights and hoping
+  // for the best, we:
+  // 1. Find which page is at the top of the viewport (anchor page)
+  // 2. Calculate how far into that page the scroll position is (ratio)
+  // 3. Compute the new scrollTop at the new scale
+  // 4. Apply it synchronously
+  // 5. THEN update visible pages
   useEffect(() => {
-    if (isReady) {
-      pageHeightsRef.current.clear();
-      setTimeout(updateVisiblePages, 50);
+    if (!isReady || scale === null) return;
+
+    const oldScale = previousScaleRef.current;
+
+    // On first render, just record the scale
+    if (oldScale === null) {
+      previousScaleRef.current = scale;
+      return;
     }
-  }, [scale, isReady, updateVisiblePages]);
+
+    // If scale hasn't actually changed, skip
+    if (Math.abs(oldScale - scale) < 0.001) return;
+
+    const container = containerRef.current;
+    if (!container) {
+      previousScaleRef.current = scale;
+      return;
+    }
+
+    // STEP 1: Mark that we're zooming (suppress scroll handler)
+    isZoomingRef.current = true;
+
+    // STEP 2: Find the anchor page and offset ratio at the OLD scale
+    const oldScrollTop = container.scrollTop;
+    const containerHeight = container.clientHeight;
+    const viewMiddle = oldScrollTop + containerHeight / 3;
+
+    let anchorPageIndex = 0;
+    let cumulativeOld = 0;
+    let anchorPageTopOld = 0;
+
+    for (let i = 0; i < pdfData.totalPages; i++) {
+      const pageHeight = getPageHeightForScale(i, oldScale);
+      const pageTop = cumulativeOld;
+      const pageBottom = cumulativeOld + pageHeight;
+
+      if (viewMiddle >= pageTop && viewMiddle < pageBottom) {
+        anchorPageIndex = i;
+        anchorPageTopOld = pageTop;
+        break;
+      }
+
+      // If we've passed the scroll position, anchor to this page
+      if (pageBottom > viewMiddle) {
+        anchorPageIndex = i;
+        anchorPageTopOld = pageTop;
+        break;
+      }
+
+      cumulativeOld += pageHeight;
+
+      // Safety: if we reach the last page
+      if (i === pdfData.totalPages - 1) {
+        anchorPageIndex = i;
+        anchorPageTopOld = pageTop;
+      }
+    }
+
+    // Calculate how far into the anchor page the view-middle is (0 to 1)
+    const anchorPageHeightOld = getPageHeightForScale(anchorPageIndex, oldScale);
+    const offsetIntoPage = anchorPageHeightOld > 0
+      ? (viewMiddle - anchorPageTopOld) / anchorPageHeightOld
+      : 0;
+
+    // STEP 3: Calculate new scrollTop at the NEW scale
+    let cumulativeNew = 0;
+    for (let i = 0; i < anchorPageIndex; i++) {
+      cumulativeNew += getPageHeightForScale(i, scale);
+    }
+    const anchorPageHeightNew = getPageHeightForScale(anchorPageIndex, scale);
+    const newAnchorPageTop = cumulativeNew;
+    const newViewMiddle = newAnchorPageTop + (offsetIntoPage * anchorPageHeightNew);
+    const newScrollTop = newViewMiddle - containerHeight / 3;
+
+    // STEP 4: Apply the new scrollTop synchronously
+    container.scrollTop = Math.max(0, newScrollTop);
+
+    // STEP 5: Clear cached heights and update visible pages
+    pageHeightsRef.current.clear();
+
+    // Update visible range immediately (not debounced)
+    updateVisiblePages();
+
+    // STEP 6: Record the new scale as "previous" for next zoom
+    previousScaleRef.current = scale;
+
+    // STEP 7: Release the zoom lock after a short delay
+    // This prevents the scroll handler from interfering
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        isZoomingRef.current = false;
+      });
+    });
+  }, [scale, isReady, pdfData.totalPages, getPageHeightForScale, updateVisiblePages]);
+  // ==============================================================
 
   // Auto-scroll to current word
   useEffect(() => {
@@ -267,6 +394,10 @@ export default function PdfViewer({
     const timeSinceManualScroll = Date.now() - lastManualScrollRef.current;
     if (timeSinceManualScroll < 1000) return;
     if (userScrolledAway) return;
+
+    // ========== FIX: Don't auto-scroll during zoom ==========
+    if (isZoomingRef.current) return;
+    // =========================================================
 
     const word = pdfData.allWords[currentWordIndex];
     if (!word) return;
@@ -281,6 +412,7 @@ export default function PdfViewer({
     });
 
     requestAnimationFrame(() => {
+      if (isZoomingRef.current) return; // FIX: Double-check
       const wordEl = document.getElementById(word.id);
       if (!wordEl) return;
       const container = containerRef.current;
@@ -353,7 +485,7 @@ export default function PdfViewer({
         position: 'relative',
       }}
     >
-      {/* Scrollable PDF Area — NO toolbar, directly starts with PDF */}
+      {/* Scrollable PDF Area */}
       <div
         ref={containerRef}
         onScroll={handleScroll}
@@ -424,6 +556,8 @@ export default function PdfViewer({
                 onWordDoubleClick={onWordDoubleClick}
                 onWordRightClick={onWordRightClick}
                 onPageMeasured={onPageMeasured}
+                blurMode={blurMode}
+                speechStatus={speechStatus}
               />
             ) : (
               <div

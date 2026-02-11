@@ -2,17 +2,13 @@
    FREE PDF TTS READER — PDF Page
    by Analyst Sandeep
    
-   Renders a single PDF page:
-   - Canvas layer (accurate visual rendering)
+   Renders a single PDF page with:
+   - Canvas layer (images/diagrams — never blurred)
    - Text layer (clickable words with highlighting)
-   
-   UPGRADED: 
-   - Reports measured height for virtualized rendering
-   - Debounced rendering to prevent fast-zoom corruption
-   - Cancels in-progress renders before starting new ones
+   - Premium gradient spotlight blur overlay
    ======================================== */
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
 import type { PdfPageData, PdfWord } from '../types';
 import { getSentenceRange } from '../utils/textProcessing';
@@ -28,6 +24,43 @@ interface PdfPageProps {
   onWordDoubleClick: () => void;
   onWordRightClick: (word: PdfWord, position: { x: number; y: number }) => void;
   onPageMeasured?: (pageIndex: number, height: number) => void;
+  blurMode: boolean;
+  speechStatus: string;
+}
+
+const LINE_GROUP_TOLERANCE = 3;
+
+function getLinePositions(words: PdfWord[]): { top: number; height: number }[] {
+  if (words.length === 0) return [];
+
+  const lines: { top: number; height: number }[] = [];
+  const sorted = [...words].sort((a, b) => a.rect.top - b.rect.top);
+
+  let currentLineTop = sorted[0].rect.top;
+  let currentLineHeight = sorted[0].rect.height;
+
+  for (let i = 1; i < sorted.length; i++) {
+    const word = sorted[i];
+    if (Math.abs(word.rect.top - currentLineTop) <= LINE_GROUP_TOLERANCE) {
+      currentLineHeight = Math.max(currentLineHeight, word.rect.height);
+    } else {
+      lines.push({ top: currentLineTop, height: currentLineHeight });
+      currentLineTop = word.rect.top;
+      currentLineHeight = word.rect.height;
+    }
+  }
+  lines.push({ top: currentLineTop, height: currentLineHeight });
+
+  return lines;
+}
+
+function getWordLineIndex(wordTop: number, lines: { top: number; height: number }[]): number {
+  for (let i = 0; i < lines.length; i++) {
+    if (Math.abs(wordTop - lines[i].top) <= LINE_GROUP_TOLERANCE) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 export default function PdfPage({
@@ -41,73 +74,75 @@ export default function PdfPage({
   onWordDoubleClick,
   onWordRightClick,
   onPageMeasured,
+  blurMode,
+  speechStatus,
 }: PdfPageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pageContainerRef = useRef<HTMLDivElement>(null);
   const [isRendered, setIsRendered] = useState(false);
 
-  // ---- Refs for render lifecycle management ----
   const activeRenderTaskRef = useRef<RenderTask | null>(null);
   const renderDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRenderedScaleRef = useRef<number | null>(null);
   const isMountedRef = useRef(true);
 
-  // Calculate display dimensions
   const displayWidth = pageData.originalWidth * scale;
   const displayHeight = pageData.originalHeight * scale;
 
-  /**
-   * Report measured height to parent for virtualization.
-   */
+  const linePositions = useMemo(() => getLinePositions(pageData.words), [pageData.words]);
+
+  const currentWordOnThisPage = useMemo(() => {
+    if (currentWordIndex < 0) return false;
+    return pageData.words.some((w) => w.globalIndex === currentWordIndex);
+  }, [currentWordIndex, pageData.words]);
+
+  // Get current line position for the gradient spotlight
+  const currentLineInfo = useMemo(() => {
+    if (!currentWordOnThisPage || currentWordIndex < 0) return null;
+    const currentWord = pageData.words.find((w) => w.globalIndex === currentWordIndex);
+    if (!currentWord) return null;
+
+    const lineIdx = getWordLineIndex(currentWord.rect.top, linePositions);
+    if (lineIdx < 0) return null;
+
+    const line = linePositions[lineIdx];
+    const padding = line.height * 0.5;
+    return {
+      top: (line.top - padding) * scale,
+      height: (line.height + padding * 2) * scale,
+    };
+  }, [currentWordOnThisPage, currentWordIndex, pageData.words, linePositions, scale]);
+
+  const showBlurOverlays = blurMode && speechStatus === 'playing' && currentWordIndex >= 0;
+  const showFullPageBlur = showBlurOverlays && !currentWordOnThisPage;
+  const showSplitBlur = showBlurOverlays && currentWordOnThisPage && currentLineInfo !== null;
+
   useEffect(() => {
     if (pageContainerRef.current && onPageMeasured) {
       const height = pageContainerRef.current.offsetHeight;
-      if (height > 0) {
-        onPageMeasured(pageData.pageIndex, height);
-      }
+      if (height > 0) onPageMeasured(pageData.pageIndex, height);
     }
   }, [displayHeight, onPageMeasured, pageData.pageIndex]);
 
-  /**
-   * Cancel any in-progress render task safely.
-   */
   const cancelActiveRender = useCallback(() => {
     if (activeRenderTaskRef.current) {
-      try {
-        activeRenderTaskRef.current.cancel();
-      } catch {
-        // Ignore — render may have already completed
-      }
+      try { activeRenderTaskRef.current.cancel(); } catch { /* ignore */ }
       activeRenderTaskRef.current = null;
     }
   }, []);
 
-  /**
-   * Render the PDF page to canvas.
-   * This function cancels any previous render before starting.
-   */
   const renderPage = useCallback(async () => {
     const canvas = canvasRef.current;
     if (!canvas || !isMountedRef.current) return;
 
-    // Cancel any in-progress render first
     cancelActiveRender();
-
-    // Capture the scale we're rendering at
     const renderScale = scale;
 
     try {
       const page = await pdfDoc.getPage(pageData.pageNumber);
-
-      // Check if component unmounted or scale changed during getPage()
-      if (!isMountedRef.current) {
-        page.cleanup();
-        return;
-      }
+      if (!isMountedRef.current) { page.cleanup(); return; }
 
       const viewport = page.getViewport({ scale: renderScale });
-
-      // Set canvas dimensions (use devicePixelRatio for sharp rendering)
       const dpr = window.devicePixelRatio || 1;
       canvas.width = viewport.width * dpr;
       canvas.height = viewport.height * dpr;
@@ -115,151 +150,105 @@ export default function PdfPage({
       canvas.style.height = `${viewport.height}px`;
 
       const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        page.cleanup();
-        return;
-      }
+      if (!ctx) { page.cleanup(); return; }
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      // Clear the canvas before rendering to prevent ghosting
       ctx.clearRect(0, 0, viewport.width, viewport.height);
 
-      const renderTask = page.render({
-        canvasContext: ctx,
-        viewport,
-        canvas: canvas,
-      } as any);
-
-      // Store the active render task so it can be cancelled
+      const renderTask = page.render({ canvasContext: ctx, viewport, canvas } as any);
       activeRenderTaskRef.current = renderTask;
-
       await renderTask.promise;
-
-      // Render completed successfully
       activeRenderTaskRef.current = null;
 
-      // Only mark as rendered if this render is still for the current scale
-      // (prevents stale render from marking as complete)
       if (isMountedRef.current) {
         lastRenderedScaleRef.current = renderScale;
         setIsRendered(true);
       }
-
-      // Clean up page resources after successful rendering
       page.cleanup();
     } catch (err) {
-      // RenderingCancelled is expected when we cancel — not an error
-      if (err instanceof Error && err.message.includes('Rendering cancelled')) {
-        return;
-      }
-      // Also handle the DOMException from cancel()
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        return;
-      }
+      if (err instanceof Error && err.message.includes('Rendering cancelled')) return;
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       console.error(`Error rendering page ${pageData.pageNumber}:`, err);
     }
   }, [pdfDoc, pageData.pageNumber, scale, cancelActiveRender]);
 
-  /**
-   * Debounced render trigger.
-   * When scale changes rapidly (fast zoom), this waits until
-   * the user stops clicking before rendering.
-   * 
-   * Key behaviors:
-   * - First render (no previous render): renders immediately
-   * - Subsequent scale changes: debounces by 150ms
-   * - Keeps the previous canvas visible during debounce (no skeleton flash)
-   */
   useEffect(() => {
-    // Clear any pending debounce
     if (renderDebounceRef.current) {
       clearTimeout(renderDebounceRef.current);
       renderDebounceRef.current = null;
     }
-
-    // If this is the very first render (never rendered before), render immediately
     if (lastRenderedScaleRef.current === null) {
       setIsRendered(false);
       renderPage();
       return;
     }
-
-    // For subsequent renders (zoom changes):
-    // Cancel any in-progress render immediately to free resources
     cancelActiveRender();
-
-    // DON'T set isRendered to false here — keep showing the old canvas
-    // This prevents the skeleton flash during fast zoom
-
-    // Debounce the actual render — wait for user to stop clicking
     renderDebounceRef.current = setTimeout(() => {
       renderDebounceRef.current = null;
-      // Now start the new render
-      // Only show skeleton if the scale difference is very large
-      // (small zoom steps: keep old canvas visible)
       const scaleDiff = Math.abs(scale - (lastRenderedScaleRef.current || scale));
-      if (scaleDiff > 0.5) {
-        setIsRendered(false);
-      }
+      if (scaleDiff > 0.5) setIsRendered(false);
       renderPage();
     }, 150);
-
-    // Cleanup debounce on unmount or next trigger
     return () => {
-      if (renderDebounceRef.current) {
-        clearTimeout(renderDebounceRef.current);
-        renderDebounceRef.current = null;
-      }
+      if (renderDebounceRef.current) { clearTimeout(renderDebounceRef.current); renderDebounceRef.current = null; }
     };
   }, [scale, renderPage, cancelActiveRender]);
 
-  /**
-   * Cleanup on unmount — cancel everything.
-   */
   useEffect(() => {
     isMountedRef.current = true;
-
     return () => {
       isMountedRef.current = false;
-
-      // Cancel any in-progress render
       cancelActiveRender();
-
-      // Cancel any pending debounce
-      if (renderDebounceRef.current) {
-        clearTimeout(renderDebounceRef.current);
-        renderDebounceRef.current = null;
-      }
+      if (renderDebounceRef.current) { clearTimeout(renderDebounceRef.current); renderDebounceRef.current = null; }
     };
   }, [cancelActiveRender]);
 
-  /**
-   * Calculate sentence range for sentence highlighting.
-   */
   const sentenceRange =
     highlightMode === 'sentence' && currentWordIndex >= 0
-      ? getSentenceRange(allWords, currentWordIndex)
-      : null;
+      ? getSentenceRange(allWords, currentWordIndex) : null;
 
-  /**
-   * Check if a word should be highlighted.
-   */
   const isWordHighlighted = (word: PdfWord): boolean => {
     if (currentWordIndex < 0) return false;
     return word.globalIndex === currentWordIndex;
   };
 
-  /**
-   * Check if a word is in the highlighted sentence.
-   */
   const isInSentence = (word: PdfWord): boolean => {
     if (!sentenceRange) return false;
-    return (
-      word.globalIndex >= sentenceRange.start &&
-      word.globalIndex <= sentenceRange.end
-    );
+    return word.globalIndex >= sentenceRange.start && word.globalIndex <= sentenceRange.end;
   };
+
+  // ---- Build gradient spotlight overlay using CSS gradient ----
+  const spotlightGradient = useMemo(() => {
+    if (!showSplitBlur || !currentLineInfo) return null;
+
+    const clearTop = Math.max(0, currentLineInfo.top);
+    const clearBottom = Math.min(displayHeight, currentLineInfo.top + currentLineInfo.height);
+
+    // Gradient fades from opaque (edges) to transparent (current line)
+    // Creating a smooth spotlight effect
+    const fadeZone = 60; // px of gradient fade
+
+    const gradientTop = Math.max(0, clearTop - fadeZone);
+    const gradientBottom = Math.min(displayHeight, clearBottom + fadeZone);
+
+    // Convert to percentages
+    const pGradTop = (gradientTop / displayHeight) * 100;
+    const pClearTop = (clearTop / displayHeight) * 100;
+    const pClearBottom = (clearBottom / displayHeight) * 100;
+    const pGradBottom = (gradientBottom / displayHeight) * 100;
+
+    return `linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.35) 0%,
+      rgba(0, 0, 0, 0.35) ${pGradTop}%,
+      rgba(0, 0, 0, 0.15) ${pClearTop}%,
+      rgba(0, 0, 0, 0) ${pClearTop + 0.5}%,
+      rgba(0, 0, 0, 0) ${pClearBottom - 0.5}%,
+      rgba(0, 0, 0, 0.15) ${pClearBottom}%,
+      rgba(0, 0, 0, 0.35) ${pGradBottom}%,
+      rgba(0, 0, 0, 0.35) 100%
+    )`;
+  }, [showSplitBlur, currentLineInfo, displayHeight]);
 
   return (
     <div
@@ -276,42 +265,31 @@ export default function PdfPage({
         overflow: 'hidden',
       }}
     >
-      {/* Canvas Layer — Accurate PDF Rendering */}
+      {/* Canvas Layer — NEVER blurred */}
       <canvas
         ref={canvasRef}
         style={{
           position: 'absolute',
-          top: 0,
-          left: 0,
+          top: 0, left: 0,
           width: `${displayWidth}px`,
           height: `${displayHeight}px`,
         }}
       />
 
-      {/* Loading Skeleton (shown before canvas renders) */}
+      {/* Loading Skeleton */}
       {!isRendered && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            padding: '40px 48px',
-            justifyContent: 'flex-start',
-            paddingTop: '60px',
-          }}
-        >
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', flexDirection: 'column',
+          gap: '10px', padding: '40px 48px',
+          justifyContent: 'flex-start', paddingTop: '60px',
+        }}>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="skeleton"
-              style={{
-                height: '10px',
-                width: i === 0 ? '45%' : i === 7 ? '55%' : `${70 + (i * 3) % 25}%`,
-                borderRadius: '4px',
-              }}
-            />
+            <div key={i} className="skeleton" style={{
+              height: '10px',
+              width: i === 0 ? '45%' : i === 7 ? '55%' : `${70 + (i * 3) % 25}%`,
+              borderRadius: '4px',
+            }} />
           ))}
         </div>
       )}
@@ -321,8 +299,7 @@ export default function PdfPage({
         className="pdf-text-layer"
         style={{
           position: 'absolute',
-          top: 0,
-          left: 0,
+          top: 0, left: 0,
           width: `${displayWidth}px`,
           height: `${displayHeight}px`,
         }}
@@ -330,8 +307,6 @@ export default function PdfPage({
         {pageData.words.map((word) => {
           const highlighted = isWordHighlighted(word);
           const inSentence = isInSentence(word);
-
-          // Scale word position
           const left = word.rect.left * scale;
           const top = word.rect.top * scale;
           const width = word.rect.width * scale;
@@ -347,38 +322,22 @@ export default function PdfPage({
                 'pdf-word',
                 highlighted ? 'word-highlight' : '',
                 inSentence && !highlighted ? 'sentence-highlight' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              ].filter(Boolean).join(' ')}
               style={{
                 position: 'absolute',
-                left: `${left}px`,
-                top: `${top}px`,
-                width: `${width}px`,
-                height: `${height}px`,
+                left: `${left}px`, top: `${top}px`,
+                width: `${width}px`, height: `${height}px`,
                 fontSize: `${fontSize}px`,
                 lineHeight: `${height}px`,
                 fontFamily: word.fontFamily,
                 cursor: 'pointer',
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
+                userSelect: 'none', WebkitUserSelect: 'none',
                 color: 'transparent',
                 zIndex: highlighted ? 5 : 2,
               }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onWordClick(word.globalIndex);
-              }}
-              onDoubleClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onWordDoubleClick();
-              }}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onWordRightClick(word, { x: e.clientX, y: e.clientY });
-              }}
+              onClick={(e) => { e.stopPropagation(); onWordClick(word.globalIndex); }}
+              onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); onWordDoubleClick(); }}
+              onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onWordRightClick(word, { x: e.clientX, y: e.clientY }); }}
               title={word.originalText}
             >
               {word.originalText}
@@ -387,22 +346,37 @@ export default function PdfPage({
         })}
       </div>
 
+      {/* ---- PREMIUM GRADIENT SPOTLIGHT OVERLAY ---- */}
+
+      {/* Full page dim — pages without the current word */}
+      {showFullPageBlur && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'rgba(0, 0, 0, 0.3)',
+          zIndex: 6, pointerEvents: 'none',
+          transition: 'opacity 0.3s ease',
+        }} />
+      )}
+
+      {/* Gradient spotlight — page with the current word */}
+      {showSplitBlur && spotlightGradient && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: spotlightGradient,
+          zIndex: 6, pointerEvents: 'none',
+          transition: 'background 0.15s ease',
+        }} />
+      )}
+
       {/* Page Number Badge */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '8px',
-          right: '8px',
-          padding: '2px 8px',
-          borderRadius: '4px',
-          fontSize: '10px',
-          fontWeight: 600,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          color: 'white',
-          zIndex: 10,
-          pointerEvents: 'none',
-        }}
-      >
+      <div style={{
+        position: 'absolute',
+        bottom: '8px', right: '8px',
+        padding: '2px 8px', borderRadius: '4px',
+        fontSize: '10px', fontWeight: 600,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        color: 'white', zIndex: 10, pointerEvents: 'none',
+      }}>
         {pageData.pageNumber}
       </div>
     </div>

@@ -558,7 +558,7 @@ tooltip-wrapper::after {
   color: transparent;
   cursor: pointer;
   white-space: pre;
-  transition: background-color 0.1s ease;
+  transition: background-color 0.1s ease, filter 0.2s ease, opacity 0.2s ease;
   border-radius: 3px;
   z-index: 2;
 }

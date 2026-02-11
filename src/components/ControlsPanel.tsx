@@ -5,6 +5,7 @@
    — Keyboard hints removed
    — Waveform below play button
    — Word count + read time in status
+   — Focus Blur Mode toggle added
    ======================================== */
 
 import {
@@ -17,6 +18,7 @@ import {
   ChevronRight,
   FileText,
   Clock,
+  Focus,
 } from 'lucide-react';
 import type { SpeechStatus, PdfDocumentData } from '../types';
 import type { VoiceInfo } from '../types';
@@ -36,6 +38,8 @@ interface ControlsPanelProps {
   onHighlightModeChange: (mode: 'word' | 'sentence') => void;
   onToggleVoicePicker: () => void;
   isVoicePickerOpen: boolean;
+  blurMode: boolean;
+  onBlurModeToggle: () => void;
 }
 
 const SPEED_PRESETS = [
@@ -61,6 +65,8 @@ export default function ControlsPanel({
   onHighlightModeChange,
   onToggleVoicePicker,
   isVoicePickerOpen,
+  blurMode,
+  onBlurModeToggle,
 }: ControlsPanelProps) {
   const isPlaying = status === 'playing';
   const isPaused = status === 'paused';
@@ -317,7 +323,7 @@ export default function ControlsPanel({
       </div>
 
       {/* ---- Highlight Section ---- */}
-      <div style={{ padding: '16px 20px' }}>
+      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
         <div
           style={{
             fontSize: '11px',
@@ -364,6 +370,93 @@ export default function ControlsPanel({
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* ---- Focus Mode Section ---- */}
+      <div style={{ padding: '16px 20px' }}>
+        <div
+          style={{
+            fontSize: '11px',
+            fontWeight: 600,
+            color: 'var(--text-muted)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            marginBottom: '10px',
+          }}
+        >
+          Focus Mode
+        </div>
+
+        <button
+          onClick={onBlurModeToggle}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            padding: '10px 12px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid',
+            borderColor: blurMode ? 'var(--accent-start)' : 'var(--border-color)',
+            backgroundColor: blurMode ? 'var(--accent-soft)' : 'var(--bg-primary)',
+            color: blurMode ? 'var(--accent-start)' : 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontWeight: 500,
+            textAlign: 'left',
+            transition: 'all 0.15s ease',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Focus size={13} style={{ flexShrink: 0 }} />
+            <span>Reading Focus</span>
+          </div>
+
+          {/* Toggle Switch */}
+          <div
+            style={{
+              width: '36px',
+              height: '20px',
+              borderRadius: '10px',
+              backgroundColor: blurMode ? 'var(--accent-start)' : 'var(--bg-tertiary)',
+              border: `1px solid ${blurMode ? 'var(--accent-start)' : 'var(--border-color)'}`,
+              position: 'relative',
+              transition: 'all 0.2s ease',
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                width: '14px',
+                height: '14px',
+                borderRadius: '50%',
+                backgroundColor: blurMode ? '#fff' : 'var(--text-muted)',
+                position: 'absolute',
+                top: '2px',
+                left: blurMode ? '18px' : '2px',
+                transition: 'all 0.2s ease',
+                boxShadow: blurMode ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
+              }}
+            />
+          </div>
+        </button>
+
+        {/* Hint text */}
+        <div
+          style={{
+            fontSize: '10px',
+            color: 'var(--text-muted)',
+            marginTop: '6px',
+            opacity: 0.7,
+            lineHeight: '1.4',
+          }}
+        >
+          {blurMode
+            ? 'Blurs surrounding text during reading to help you focus on the current line.'
+            : 'Enable to blur surrounding lines while reading.'}
         </div>
       </div>
     </div>
