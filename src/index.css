@@ -1,0 +1,754 @@
+/* ========================================
+   FREE PDF TTS READER — Global Styles
+   Redesign: Warm Premium Reader
+   by Analyst Sandeep
+   ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;600&display=swap');
+
+/* ---------- Foundation Tokens ---------- */
+:root {
+  --font-ui: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-reading: 'Source Serif 4', ui-serif, Georgia, serif;
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(30, 27, 22, 0.04);
+  --shadow-sm: 0 2px 8px rgba(30, 27, 22, 0.06);
+  --shadow-md: 0 8px 24px rgba(30, 27, 22, 0.08);
+  --shadow-lg: 0 16px 48px rgba(30, 27, 22, 0.12);
+  --shadow-glow: 0 0 20px rgba(63, 70, 255, 0.15);
+
+  --focus-ring: rgba(63, 70, 255, 0.28);
+
+  --trans-fast: 120ms;
+  --trans-med: 200ms;
+  --trans-slow: 350ms;
+}
+
+/* ---------- Light Theme (Warm Premium) ---------- */
+:root {
+  --bg-primary: #FAFAF7;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #F5F2EB;
+  --bg-elevated: #FFFFFF;
+  --bg-sunken: #F0EDE5;
+
+  --text-primary: #1A1814;
+  --text-secondary: #5C564D;
+  --text-muted: #9B9488;
+
+  --border-color: #E8E3D8;
+  --border-subtle: #F0EBE0;
+
+  --accent-start: #4F46E5;
+  --accent-end: #3730A3;
+  --accent-soft: rgba(79, 70, 229, 0.08);
+  --accent-medium: rgba(79, 70, 229, 0.15);
+
+ --highlight-bg: rgba(255, 160, 0, 0.35);
+--highlight-glow: rgba(255, 160, 0, 0.55);
+--sentence-bg: rgba(79, 70, 229, 0.12);
+
+  --success: #16A34A;
+  --warning: #D97706;
+  --error: #DC2626;
+  --info: #2563EB;
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --shadow-color: rgba(30, 27, 22, 0.08);
+
+  --scrollbar-thumb: #D4CFC4;
+  --scrollbar-track: #F0EDE5;
+}
+
+/* ---------- Dark Theme ---------- */
+[data-theme="dark"] {
+  --bg-primary: #0C0F1A;
+  --bg-secondary: #12162A;
+  --bg-tertiary: #0A0D18;
+  --bg-elevated: #181D35;
+  --bg-sunken: #080B14;
+
+  --text-primary: #EDECEA;
+  --text-secondary: #A8A39A;
+  --text-muted: #6B665D;
+
+  --border-color: #232840;
+  --border-subtle: #1A1F35;
+
+  --accent-start: #7C7AFF;
+  --accent-end: #5B58F5;
+  --accent-soft: rgba(124, 122, 255, 0.08);
+  --accent-medium: rgba(124, 122, 255, 0.15);
+
+  --highlight-bg: rgba(255, 180, 40, 0.40);
+--highlight-glow: rgba(255, 180, 40, 0.60);
+--sentence-bg: rgba(124, 122, 255, 0.15);
+
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #3B82F6;
+
+  --glass-bg: rgba(12, 15, 26, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --shadow-color: rgba(0, 0, 0, 0.4);
+
+  --scrollbar-thumb: #2A2F48;
+  --scrollbar-track: #0F1222;
+}
+
+/* ---------- Sepia Theme ---------- */
+[data-theme="sepia"] {
+  --bg-primary: #FAF3E3;
+  --bg-secondary: #FFF8EC;
+  --bg-tertiary: #F2E6D0;
+  --bg-elevated: #FFFBF2;
+  --bg-sunken: #EBD9BE;
+
+  --text-primary: #2B241A;
+  --text-secondary: #635644;
+  --text-muted: #8A7A63;
+
+  --border-color: #E0D0B5;
+  --border-subtle: #EBD9BE;
+
+  --accent-start: #4F46E5;
+  --accent-end: #3730A3;
+  --accent-soft: rgba(79, 70, 229, 0.08);
+  --accent-medium: rgba(79, 70, 229, 0.12);
+
+ --highlight-bg: rgba(234, 140, 0, 0.35);
+--highlight-glow: rgba(234, 140, 0, 0.50);
+--sentence-bg: rgba(79, 70, 229, 0.10);
+
+  --success: #16A34A;
+  --warning: #D97706;
+  --error: #DC2626;
+  --info: #2563EB;
+
+  --glass-bg: rgba(250, 243, 227, 0.72);
+  --glass-border: rgba(224, 208, 181, 0.4);
+  --shadow-color: rgba(43, 36, 26, 0.1);
+
+  --scrollbar-thumb: #C4A882;
+  --scrollbar-track: #EBD9BE;
+}
+
+/* ---------- Base Reset ---------- */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--trans-slow) ease, color var(--trans-slow) ease;
+  overflow: hidden;
+  height: 100vh;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+#root {
+  height: 100vh;
+  overflow: hidden;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 10px;
+  border: 2px solid var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* ---------- Focus & Interaction ---------- */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+a,
+button {
+  transition:
+    transform var(--trans-fast) ease,
+    background var(--trans-fast) ease,
+    box-shadow var(--trans-fast) ease,
+    border-color var(--trans-fast) ease,
+    color var(--trans-fast) ease,
+    opacity var(--trans-fast) ease;
+}
+
+::selection {
+  background: var(--highlight-bg);
+  color: var(--text-primary);
+}
+
+/* ---------- Glass Panels ---------- */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.glass-strong {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---------- Gradient Text ---------- */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ---------- Word Highlighting ---------- */
+.word-highlight {
+  background-color: var(--highlight-bg);
+  border-radius: 4px;
+  padding: 2px 3px;
+  margin: -2px -3px;
+  box-shadow: 0 0 0 2px var(--highlight-glow), 0 0 12px var(--highlight-glow);
+  animation: word-glow 1.5s ease-in-out infinite alternate;
+  transition: background-color 0.15s ease;
+}
+
+@keyframes word-glow {
+  0% {
+    box-shadow: 0 0 0 2px var(--highlight-glow), 0 0 8px var(--highlight-glow);
+  }
+  100% {
+    box-shadow: 0 0 0 2px var(--highlight-glow), 0 0 20px var(--highlight-glow);
+  }
+}
+
+.sentence-highlight {
+  background-color: var(--sentence-bg);
+  border-radius: 3px;
+  padding: 2px 1px;
+  margin: -1px;
+  box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.15);
+  transition: background-color 0.15s ease;
+}
+
+
+/* ---------- Waveform Animation ---------- */
+.waveform-bar {
+  display: inline-block;
+  width: 3px;
+  margin: 0 1.5px;
+  border-radius: 3px;
+  background: linear-gradient(to top, var(--accent-start), var(--accent-end));
+  animation: wave 1s ease-in-out infinite;
+}
+
+.waveform-bar:nth-child(1) { animation-delay: 0s; height: 8px; }
+.waveform-bar:nth-child(2) { animation-delay: 0.1s; height: 14px; }
+.waveform-bar:nth-child(3) { animation-delay: 0.2s; height: 10px; }
+.waveform-bar:nth-child(4) { animation-delay: 0.3s; height: 18px; }
+.waveform-bar:nth-child(5) { animation-delay: 0.15s; height: 12px; }
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1.2); }
+}
+
+/* ---------- Gradient Button ---------- */
+.btn-gradient {
+  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 0 20px;
+  height: 44px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm), var(--shadow-glow);
+  transition: all var(--trans-med) ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-gradient:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md), 0 0 28px rgba(63, 70, 255, 0.2);
+  filter: brightness(1.05);
+}
+
+.btn-gradient:active {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+
+.btn-gradient:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+  box-shadow: none;
+}
+
+/* ---------- Icon Button ---------- */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--trans-fast) ease;
+}
+
+.btn-icon:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.btn-icon:active {
+  transform: translateY(0);
+}
+
+/* ---------- Star / Play Button ---------- */
+.btn-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+  color: white;
+  cursor: pointer;
+  font-size: 24px;
+  transition: all var(--trans-med) ease;
+  box-shadow: var(--shadow-sm), var(--shadow-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-star:hover {
+  transform: scale(1.08);
+  box-shadow: var(--shadow-md), 0 0 32px rgba(63, 70, 255, 0.25);
+}
+
+.btn-star:active {
+  transform: scale(0.95);
+}
+
+.btn-star::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 60%
+  );
+  background-size: 200% 200%;
+  animation: btn-shine 2.5s ease infinite;
+}
+
+@keyframes btn-shine {
+  0% { background-position: 200% 200%; }
+  100% { background-position: -200% -200%; }
+}
+
+/* ---------- Tooltip ---------- *//* ---------- Tooltip ---------- */
+
+tooltip-wrapper {
+  position: relative;
+}
+
+/* Default: tooltip appears ABOVE */
+tooltip-wrapper::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--trans-fast) ease, transform var(--trans-fast) ease;
+  z-index: 9999;
+  box-shadow: var(--shadow-md);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tooltip-wrapper:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* Tooltip BELOW — for header buttons */
+.tooltip-wrapper.tooltip-bottom::after {
+  bottom: auto;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+}
+
+.tooltip-wrapper.tooltip-bottom:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* Tooltip to the RIGHT — for sidebar buttons */
+.tooltip-wrapper.tooltip-right::after {
+  bottom: auto;
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%) scale(0.9);
+}
+
+.tooltip-wrapper.tooltip-right:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+/* ---------- Skeleton Loader ---------- */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary) 25%,
+    var(--bg-secondary) 50%,
+    var(--bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- Toast Notifications ---------- */
+.toast-enter {
+  animation: toast-in 0.35s ease forwards;
+}
+
+.toast-exit {
+  animation: toast-out 0.3s ease forwards;
+}
+
+@keyframes toast-in {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toast-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(120%); opacity: 0; }
+}
+
+/* ---------- Modal ---------- */
+.modal-overlay {
+  animation: overlay-in 0.25s ease forwards;
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  animation: modal-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.92) translateY(16px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ---------- PDF Text Layer ---------- */
+.pdf-text-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.pdf-text-layer .pdf-word {
+  position: absolute;
+  color: transparent;
+  cursor: pointer;
+  white-space: pre;
+  transition: background-color 0.1s ease;
+  border-radius: 3px;
+  z-index: 2;
+}
+
+.pdf-text-layer .pdf-word:hover {
+  background-color: var(--accent-soft);
+}
+
+/* ---------- Progress Bar ---------- */
+.progress-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+  transition: width 0.3s ease;
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 8px rgba(79, 70, 229, 0.3);
+}
+
+/* ---------- Floating Action Button ---------- */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 40;
+  animation: fab-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fab-in {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .btn-star {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+/* ========================================
+   READING PROGRESS BAR (Global — top of viewport)
+   ======================================== */
+
+/* Progress bar track color — per theme */
+:root {
+  --progress-track: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] {
+  --progress-track: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="sepia"] {
+  --progress-track: rgba(0, 0, 0, 0.06);
+}
+
+/* Progress bar glow animation */
+.global-progress-fill {
+  position: relative;
+}
+
+.global-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progress-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes progress-shimmer {
+  0% { transform: translateX(-80px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(80px); opacity: 0; }
+}
+
+/* ========================================
+   JUMP-TO-PAGE ERROR TOOLTIP
+   ======================================== */
+
+@keyframes jump-error-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ========================================
+   TOOLBAR METADATA — responsive hiding
+   ======================================== */
+
+@media (max-width: 900px) {
+  .toolbar-metadata {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   NUMBER INPUT — hide spin buttons
+   ======================================== */
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+/* ========================================
+   READING PROGRESS BAR
+   ======================================== */
+
+:root {
+  --progress-track: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] {
+  --progress-track: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="sepia"] {
+  --progress-track: rgba(0, 0, 0, 0.06);
+}
+
+.global-progress-fill {
+  position: relative;
+}
+
+.global-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progress-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes progress-shimmer {
+  0% { transform: translateX(-80px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(80px); opacity: 0; }
+}
+
+/* ========================================
+   JUMP-TO-PAGE ERROR TOOLTIP
+   ======================================== */
+
+@keyframes jump-error-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ========================================
+   NUMBER INPUT — hide spin buttons
+   ======================================== */
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
