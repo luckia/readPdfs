@@ -379,14 +379,32 @@ export default function PdfViewer({
             {[1, 2].map((i) => (
               <div
                 key={i}
-                className="skeleton"
                 style={{
                   width: '80%',
                   maxWidth: '600px',
                   height: '800px',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
+                  backgroundColor: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  padding: '40px 48px',
+                  paddingTop: '60px',
                 }}
-              />
+              >
+                {Array.from({ length: 8 }).map((_, j) => (
+                  <div
+                    key={j}
+                    className="skeleton"
+                    style={{
+                      height: '10px',
+                      width: j === 0 ? '45%' : j === 7 ? '55%' : `${70 + (j * 3) % 25}%`,
+                      borderRadius: '4px',
+                    }}
+                  />
+                ))}
+              </div>
             ))}
           </div>
         )}
