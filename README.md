@@ -108,4 +108,8 @@ cd pdf-text-to-speech-reader
 npm install
 
 # Start the app
+<<<<<<< HEAD
 npm run dev
+=======
+npm run dev
+>>>>>>> ecc14c2591baff4b9aa0ad5fcbd1bb5fd626daaa
