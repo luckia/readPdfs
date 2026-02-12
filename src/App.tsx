@@ -4,6 +4,7 @@
    
    Main Application Component
    Redesign: Warm Premium Reader
+   UPDATED: Mobile responsive layout + performance
    ======================================== */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -47,12 +48,16 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
 
-    // Zoom state
+  // Zoom state
   const [scale, setScale] = useState<number | null>(null);
   const [zoomMode, setZoomMode] = useState<'fit-width' | 'custom'>('fit-width');
 
   // Focus blur mode state
   const [blurMode, setBlurMode] = useState(false);
+
+  // ========== Mobile drawer state ==========
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  // ==========================================
 
   // Jump to page state
   const [jumpToPage, setJumpToPage] = useState('');
@@ -131,7 +136,6 @@ export default function App() {
     toast.themeChanged(themeNames[nextTheme]);
   }, [theme, toast]);
 
- 
   const handleHighlightModeChange = useCallback(
     (mode: 'word' | 'sentence') => { speech.setHighlightMode(mode); },
     [speech]
@@ -140,6 +144,12 @@ export default function App() {
   const handleBlurModeToggle = useCallback(() => {
     setBlurMode((prev) => !prev);
   }, []);
+
+  // ========== Mobile drawer toggle ==========
+  const handleToggleMobileDrawer = useCallback(() => {
+    setIsMobileDrawerOpen((prev) => !prev);
+  }, []);
+  // ============================================
 
   useEffect(() => {
     speech.onComplete(() => { toast.readingComplete(); });
@@ -160,6 +170,9 @@ export default function App() {
         if (showShortcuts) { setShowShortcuts(false); return; }
         if (showVoicePicker) { setShowVoicePicker(false); return; }
         if (dictionary.isOpen) { dictionary.close(); return; }
+        // ========== Close mobile drawer on Escape ==========
+        if (isMobileDrawerOpen) { setIsMobileDrawerOpen(false); return; }
+        // ====================================================
         speech.stop();
         return;
       }
@@ -173,7 +186,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [speech, dictionary, showShortcuts, showVoicePicker]);
+  }, [speech, dictionary, showShortcuts, showVoicePicker, isMobileDrawerOpen]);
 
   // Zoom handlers
   const handleZoomIn = useCallback(() => {
@@ -320,7 +333,8 @@ export default function App() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 /* Offset left by ~120px (half of sidebar width 240px) to center over PDF content */
-                marginLeft: '-120px',
+                /* On mobile, no offset needed since sidebar is hidden */
+                marginLeft: isMobile ? '0px' : '-120px',
               }}
             >
               <ZoomControls
@@ -351,10 +365,10 @@ export default function App() {
                     marginRight: '4px',
                   }}
                 >
-                  {/* Row 1: Go to input */}
+                  {/* Row 1: Go to input — hide on very small screens */}
                   <div
                     style={{
-                      display: 'flex',
+                      display: isMobile ? 'none' : 'flex',
                       alignItems: 'center',
                       gap: '5px',
                       position: 'relative',
@@ -467,15 +481,17 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Separator */}
-                <span
-                  style={{
-                    width: '1px',
-                    height: '28px',
-                    backgroundColor: 'var(--border-color)',
-                    flexShrink: 0,
-                  }}
-                />
+                {/* Separator — hide on mobile */}
+                {!isMobile && (
+                  <span
+                    style={{
+                      width: '1px',
+                      height: '28px',
+                      backgroundColor: 'var(--border-color)',
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
               </>
             )}
 
@@ -483,7 +499,7 @@ export default function App() {
             {pdf.pdfData && (
               <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Upload New PDF">
                 <button
-                  onClick={() => { speech.stop(); pdf.clearPdf(); setScale(null); setZoomMode('fit-width'); }}
+                  onClick={() => { speech.stop(); pdf.clearPdf(); setScale(null); setZoomMode('fit-width'); setIsMobileDrawerOpen(false); }}
                   className="btn-icon"
                   style={{
                     width: '34px',
@@ -510,17 +526,19 @@ export default function App() {
               </button>
             </div>
 
-            {/* Shortcuts */}
-            <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Shortcuts (?)">
-              <button
-                onClick={() => setShowShortcuts(true)}
-                className="btn-icon"
-                style={{ width: '34px', height: '34px', borderRadius: 'var(--radius-md)' }}
-                aria-label="Show keyboard shortcuts"
-              >
-                <span style={{ fontSize: '13px' }}>⌨️</span>
-              </button>
-            </div>
+            {/* Shortcuts — hide on mobile */}
+            {!isMobile && (
+              <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Shortcuts (?)">
+                <button
+                  onClick={() => setShowShortcuts(true)}
+                  className="btn-icon"
+                  style={{ width: '34px', height: '34px', borderRadius: 'var(--radius-md)' }}
+                  aria-label="Show keyboard shortcuts"
+                >
+                  <span style={{ fontSize: '13px' }}>⌨️</span>
+                </button>
+              </div>
+            )}
 
             {/* Theme Toggle */}
             <ThemeToggle theme={theme.theme} onCycleTheme={handleThemeCycle} />
@@ -566,6 +584,7 @@ export default function App() {
             position: 'relative',
           }}
         >
+          {/* ControlsPanel — on mobile it renders its own hamburger + drawer overlay */}
           {showPdfViewer && pdf.pdfData && (
             <ControlsPanel
               status={speech.status}
@@ -583,6 +602,9 @@ export default function App() {
               isVoicePickerOpen={showVoicePicker}
               blurMode={blurMode}
               onBlurModeToggle={handleBlurModeToggle}
+              isMobile={isMobile}
+              isMobileDrawerOpen={isMobileDrawerOpen}
+              onToggleMobileDrawer={handleToggleMobileDrawer}
             />
           )}
 

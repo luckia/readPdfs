@@ -6,6 +6,7 @@
    — Waveform below play button
    — Word count + read time in status
    — Focus Blur Mode toggle added
+   — MOBILE: Slide-out drawer with hamburger toggle
    ======================================== */
 
 import {
@@ -19,6 +20,8 @@ import {
   FileText,
   Clock,
   Focus,
+  X,
+  Menu,
 } from 'lucide-react';
 import type { SpeechStatus, PdfDocumentData } from '../types';
 import type { VoiceInfo } from '../types';
@@ -40,6 +43,11 @@ interface ControlsPanelProps {
   isVoicePickerOpen: boolean;
   blurMode: boolean;
   onBlurModeToggle: () => void;
+  // ========== NEW: Mobile drawer props ==========
+  isMobile: boolean;
+  isMobileDrawerOpen: boolean;
+  onToggleMobileDrawer: () => void;
+  // ===============================================
 }
 
 const SPEED_PRESETS = [
@@ -67,6 +75,9 @@ export default function ControlsPanel({
   isVoicePickerOpen,
   blurMode,
   onBlurModeToggle,
+  isMobile,
+  isMobileDrawerOpen,
+  onToggleMobileDrawer,
 }: ControlsPanelProps) {
   const isPlaying = status === 'playing';
   const isPaused = status === 'paused';
@@ -84,20 +95,48 @@ export default function ControlsPanel({
     return count.toLocaleString();
   };
 
-  return (
-    <div
-      style={{
-        width: '240px',
-        flexShrink: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0px',
-        backgroundColor: 'var(--bg-secondary)',
-        borderRight: '1px solid var(--border-color)',
-        overflowY: 'auto',
-        height: '100%',
-      }}
-    >
+  // ========== MOBILE: Hamburger button (rendered separately in App.tsx area) ==========
+  // On mobile, if drawer is closed, we show just the hamburger button
+  // On mobile, if drawer is open, we show the full panel as an overlay
+
+  // The panel content — shared between desktop and mobile
+  const panelContent = (
+    <>
+      {/* ---- Mobile Close Button (only on mobile) ---- */}
+      {isMobile && (
+        <div
+          style={{
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid var(--border-subtle)',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '13px',
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+            }}
+          >
+            Controls
+          </span>
+          <button
+            onClick={onToggleMobileDrawer}
+            className="btn-icon"
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: 'var(--radius-sm)',
+            }}
+            aria-label="Close controls"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
       {/* ---- Playback Section ---- */}
       <div
         style={{
@@ -110,11 +149,16 @@ export default function ControlsPanel({
         }}
       >
         {/* Play/Pause Button */}
-        <div className="tooltip-wrapper tooltip-right" data-tooltip={
-          isPlaying ? 'Pause (Space)' :
-          isPaused ? 'Resume (Space)' :
-          'Click a word to start'
-        }>
+        <div
+          className="tooltip-wrapper tooltip-right"
+          data-tooltip={
+            isPlaying
+              ? 'Pause (Space)'
+              : isPaused
+              ? 'Resume (Space)'
+              : 'Click a word to start'
+          }
+        >
           <button
             className="btn-star"
             onClick={onTogglePauseResume}
@@ -145,23 +189,41 @@ export default function ControlsPanel({
           </button>
         </div>
 
-        {/* Waveform — below play button, only visible when playing */}
+        {/* Waveform */}
         <Waveform isPlaying={isPlaying} size="medium" />
 
         {/* Status Text */}
         <div style={{ textAlign: 'center' }}>
           {isPlaying && (
             <div>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent-start)' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: 'var(--accent-start)',
+                }}
+              >
                 Reading… {progressPercent}%
               </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '3px' }}>
+              <div
+                style={{
+                  fontSize: '10px',
+                  color: 'var(--text-muted)',
+                  marginTop: '3px',
+                }}
+              >
                 Word {currentIndex + 1} of {totalWords.toLocaleString()}
               </div>
             </div>
           )}
           {isPaused && (
-            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'var(--text-muted)',
+              }}
+            >
               Paused at {progressPercent}%
             </div>
           )}
@@ -177,7 +239,7 @@ export default function ControlsPanel({
           )}
         </div>
 
-        {/* Word Count + Read Time — always visible when PDF loaded */}
+        {/* Word Count + Read Time */}
         {hasPdf && (
           <div
             style={{
@@ -211,7 +273,12 @@ export default function ControlsPanel({
       </div>
 
       {/* ---- Speed Section ---- */}
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
+      <div
+        style={{
+          padding: '16px 20px',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
         <div
           style={{
             fontSize: '11px',
@@ -243,9 +310,15 @@ export default function ControlsPanel({
                   padding: '6px 2px',
                   borderRadius: 'var(--radius-full)',
                   border: '1px solid',
-                  borderColor: isSelected ? 'var(--accent-start)' : 'var(--border-color)',
-                  backgroundColor: isSelected ? 'var(--accent-soft)' : 'var(--bg-primary)',
-                  color: isSelected ? 'var(--accent-start)' : 'var(--text-secondary)',
+                  borderColor: isSelected
+                    ? 'var(--accent-start)'
+                    : 'var(--border-color)',
+                  backgroundColor: isSelected
+                    ? 'var(--accent-soft)'
+                    : 'var(--bg-primary)',
+                  color: isSelected
+                    ? 'var(--accent-start)'
+                    : 'var(--text-secondary)',
                   fontSize: '11px',
                   fontWeight: isSelected ? 700 : 500,
                   cursor: hasPdf ? 'pointer' : 'not-allowed',
@@ -263,7 +336,12 @@ export default function ControlsPanel({
       </div>
 
       {/* ---- Voice Section ---- */}
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
+      <div
+        style={{
+          padding: '16px 20px',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
         <div
           style={{
             fontSize: '11px',
@@ -287,9 +365,15 @@ export default function ControlsPanel({
             padding: '10px 12px',
             borderRadius: 'var(--radius-md)',
             border: '1px solid',
-            borderColor: isVoicePickerOpen ? 'var(--accent-start)' : 'var(--border-color)',
-            backgroundColor: isVoicePickerOpen ? 'var(--accent-soft)' : 'var(--bg-primary)',
-            color: isVoicePickerOpen ? 'var(--accent-start)' : 'var(--text-secondary)',
+            borderColor: isVoicePickerOpen
+              ? 'var(--accent-start)'
+              : 'var(--border-color)',
+            backgroundColor: isVoicePickerOpen
+              ? 'var(--accent-soft)'
+              : 'var(--bg-primary)',
+            color: isVoicePickerOpen
+              ? 'var(--accent-start)'
+              : 'var(--text-secondary)',
             cursor: 'pointer',
             fontSize: '12px',
             fontWeight: 500,
@@ -323,7 +407,12 @@ export default function ControlsPanel({
       </div>
 
       {/* ---- Highlight Section ---- */}
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
+      <div
+        style={{
+          padding: '16px 20px',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
         <div
           style={{
             fontSize: '11px',
@@ -354,9 +443,15 @@ export default function ControlsPanel({
                   padding: '8px',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid',
-                  borderColor: isSelected ? 'var(--accent-start)' : 'var(--border-color)',
-                  backgroundColor: isSelected ? 'var(--accent-soft)' : 'var(--bg-primary)',
-                  color: isSelected ? 'var(--accent-start)' : 'var(--text-secondary)',
+                  borderColor: isSelected
+                    ? 'var(--accent-start)'
+                    : 'var(--border-color)',
+                  backgroundColor: isSelected
+                    ? 'var(--accent-soft)'
+                    : 'var(--bg-primary)',
+                  color: isSelected
+                    ? 'var(--accent-start)'
+                    : 'var(--text-secondary)',
                   fontSize: '11px',
                   fontWeight: isSelected ? 600 : 400,
                   cursor: 'pointer',
@@ -399,9 +494,15 @@ export default function ControlsPanel({
             padding: '10px 12px',
             borderRadius: 'var(--radius-md)',
             border: '1px solid',
-            borderColor: blurMode ? 'var(--accent-start)' : 'var(--border-color)',
-            backgroundColor: blurMode ? 'var(--accent-soft)' : 'var(--bg-primary)',
-            color: blurMode ? 'var(--accent-start)' : 'var(--text-secondary)',
+            borderColor: blurMode
+              ? 'var(--accent-start)'
+              : 'var(--border-color)',
+            backgroundColor: blurMode
+              ? 'var(--accent-soft)'
+              : 'var(--bg-primary)',
+            color: blurMode
+              ? 'var(--accent-start)'
+              : 'var(--text-secondary)',
             cursor: 'pointer',
             fontSize: '12px',
             fontWeight: 500,
@@ -421,8 +522,12 @@ export default function ControlsPanel({
               width: '36px',
               height: '20px',
               borderRadius: '10px',
-              backgroundColor: blurMode ? 'var(--accent-start)' : 'var(--bg-tertiary)',
-              border: `1px solid ${blurMode ? 'var(--accent-start)' : 'var(--border-color)'}`,
+              backgroundColor: blurMode
+                ? 'var(--accent-start)'
+                : 'var(--bg-tertiary)',
+              border: `1px solid ${
+                blurMode ? 'var(--accent-start)' : 'var(--border-color)'
+              }`,
               position: 'relative',
               transition: 'all 0.2s ease',
               flexShrink: 0,
@@ -438,7 +543,9 @@ export default function ControlsPanel({
                 top: '2px',
                 left: blurMode ? '18px' : '2px',
                 transition: 'all 0.2s ease',
-                boxShadow: blurMode ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
+                boxShadow: blurMode
+                  ? '0 1px 4px rgba(0,0,0,0.2)'
+                  : 'none',
               }}
             />
           </div>
@@ -459,6 +566,95 @@ export default function ControlsPanel({
             : 'Enable to blur surrounding lines while reading.'}
         </div>
       </div>
+    </>
+  );
+
+  // ========== MOBILE LAYOUT: Slide-out drawer ==========
+  if (isMobile) {
+    return (
+      <>
+        {/* Hamburger Button — always visible on mobile */}
+        {!isMobileDrawerOpen && (
+          <button
+            onClick={onToggleMobileDrawer}
+            style={{
+              position: 'fixed',
+              top: '72px',
+              left: '8px',
+              zIndex: 30,
+              width: '40px',
+              height: '40px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)',
+              backgroundColor: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-md)',
+              transition: 'all 0.2s ease',
+            }}
+            aria-label="Open controls"
+          >
+            <Menu size={20} />
+          </button>
+        )}
+
+        {/* Backdrop overlay */}
+        {isMobileDrawerOpen && (
+          <div
+            onClick={onToggleMobileDrawer}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              zIndex: 39,
+              animation: 'overlay-in 0.2s ease forwards',
+            }}
+          />
+        )}
+
+        {/* Drawer panel */}
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: isMobileDrawerOpen ? '0px' : '-280px',
+            width: '260px',
+            height: '100vh',
+            backgroundColor: 'var(--bg-secondary)',
+            borderRight: '1px solid var(--border-color)',
+            boxShadow: isMobileDrawerOpen ? 'var(--shadow-lg)' : 'none',
+            zIndex: 40,
+            overflowY: 'auto',
+            transition: 'left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {panelContent}
+        </div>
+      </>
+    );
+  }
+
+  // ========== DESKTOP LAYOUT: Normal sidebar ==========
+  return (
+    <div
+      style={{
+        width: '240px',
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0px',
+        backgroundColor: 'var(--bg-secondary)',
+        borderRight: '1px solid var(--border-color)',
+        overflowY: 'auto',
+        height: '100%',
+      }}
+    >
+      {panelContent}
     </div>
   );
 }

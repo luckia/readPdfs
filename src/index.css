@@ -757,3 +757,20 @@ input[type="number"] {
   appearance: textfield;
   -moz-appearance: textfield;
 }
+/* ========================================
+   MOBILE PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+/* Disable word hover effect on touch devices — touch can't hover */
+@media (hover: none) and (pointer: coarse) {
+  .pdf-text-layer .pdf-word:hover {
+    background-color: transparent !important;
+  }
+}
+
+/* Mobile drawer animation */
+@media (max-width: 1023px) {
+  .controls-drawer-open {
+    left: 0 !important;
+  }
+}

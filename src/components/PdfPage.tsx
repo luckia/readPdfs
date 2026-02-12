@@ -6,6 +6,7 @@
    - Canvas layer (images/diagrams — never blurred)
    - Text layer (clickable words with highlighting)
    - Premium gradient spotlight blur overlay
+   - MOBILE: Performance optimizations (DPI cap, blur disable)
    ======================================== */
 
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
@@ -29,6 +30,17 @@ interface PdfPageProps {
 }
 
 const LINE_GROUP_TOLERANCE = 3;
+
+// ========== PERFORMANCE: Detect mobile/tablet ==========
+const isMobileDevice = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.innerWidth < 1024 ||
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0
+  );
+};
+// ========================================================
 
 function getLinePositions(words: PdfWord[]): { top: number; height: number }[] {
   if (words.length === 0) return [];
@@ -86,6 +98,10 @@ export default function PdfPage({
   const lastRenderedScaleRef = useRef<number | null>(null);
   const isMountedRef = useRef(true);
 
+  // ========== PERFORMANCE: Cache mobile detection ==========
+  const isMobile = useMemo(() => isMobileDevice(), []);
+  // ==========================================================
+
   const displayWidth = pageData.originalWidth * scale;
   const displayHeight = pageData.originalHeight * scale;
 
@@ -99,6 +115,9 @@ export default function PdfPage({
   // Get current line position for the gradient spotlight
   const currentLineInfo = useMemo(() => {
     if (!currentWordOnThisPage || currentWordIndex < 0) return null;
+    // ========== PERFORMANCE: Skip calculation on mobile ==========
+    if (isMobile) return null;
+    // ==============================================================
     const currentWord = pageData.words.find((w) => w.globalIndex === currentWordIndex);
     if (!currentWord) return null;
 
@@ -111,9 +130,11 @@ export default function PdfPage({
       top: (line.top - padding) * scale,
       height: (line.height + padding * 2) * scale,
     };
-  }, [currentWordOnThisPage, currentWordIndex, pageData.words, linePositions, scale]);
+  }, [currentWordOnThisPage, currentWordIndex, pageData.words, linePositions, scale, isMobile]);
 
-  const showBlurOverlays = blurMode && speechStatus === 'playing' && currentWordIndex >= 0;
+  // ========== PERFORMANCE: Disable blur overlays on mobile ==========
+  const showBlurOverlays = !isMobile && blurMode && speechStatus === 'playing' && currentWordIndex >= 0;
+  // ===================================================================
   const showFullPageBlur = showBlurOverlays && !currentWordOnThisPage;
   const showSplitBlur = showBlurOverlays && currentWordOnThisPage && currentLineInfo !== null;
 
@@ -143,7 +164,12 @@ export default function PdfPage({
       if (!isMountedRef.current) { page.cleanup(); return; }
 
       const viewport = page.getViewport({ scale: renderScale });
-      const dpr = window.devicePixelRatio || 1;
+
+      // ========== PERFORMANCE: Cap DPI on mobile ==========
+      const rawDpr = window.devicePixelRatio || 1;
+      const dpr = isMobile ? Math.min(rawDpr, 2.0) : rawDpr;
+      // =====================================================
+
       canvas.width = viewport.width * dpr;
       canvas.height = viewport.height * dpr;
       canvas.style.width = `${viewport.width}px`;
@@ -170,7 +196,7 @@ export default function PdfPage({
       if (err instanceof DOMException && err.name === 'AbortError') return;
       console.error(`Error rendering page ${pageData.pageNumber}:`, err);
     }
-  }, [pdfDoc, pageData.pageNumber, scale, cancelActiveRender]);
+  }, [pdfDoc, pageData.pageNumber, scale, cancelActiveRender, isMobile]);
 
   useEffect(() => {
     if (renderDebounceRef.current) {
@@ -224,14 +250,11 @@ export default function PdfPage({
     const clearTop = Math.max(0, currentLineInfo.top);
     const clearBottom = Math.min(displayHeight, currentLineInfo.top + currentLineInfo.height);
 
-    // Gradient fades from opaque (edges) to transparent (current line)
-    // Creating a smooth spotlight effect
-    const fadeZone = 60; // px of gradient fade
+    const fadeZone = 60;
 
     const gradientTop = Math.max(0, clearTop - fadeZone);
     const gradientBottom = Math.min(displayHeight, clearBottom + fadeZone);
 
-    // Convert to percentages
     const pGradTop = (gradientTop / displayHeight) * 100;
     const pClearTop = (clearTop / displayHeight) * 100;
     const pClearBottom = (clearBottom / displayHeight) * 100;
@@ -265,7 +288,7 @@ export default function PdfPage({
         overflow: 'hidden',
       }}
     >
-      {/* Canvas Layer — NEVER blurred */}
+      {/* Canvas Layer */}
       <canvas
         ref={canvasRef}
         style={{
@@ -346,9 +369,7 @@ export default function PdfPage({
         })}
       </div>
 
-      {/* ---- PREMIUM GRADIENT SPOTLIGHT OVERLAY ---- */}
-
-      {/* Full page dim — pages without the current word */}
+      {/* Full page dim */}
       {showFullPageBlur && (
         <div style={{
           position: 'absolute', inset: 0,
@@ -358,7 +379,7 @@ export default function PdfPage({
         }} />
       )}
 
-      {/* Gradient spotlight — page with the current word */}
+      {/* Gradient spotlight */}
       {showSplitBlur && spotlightGradient && (
         <div style={{
           position: 'absolute', inset: 0,
