@@ -19,24 +19,6 @@
 
 ---
 
-## 📋 Table of Contents
-
-- [Why PDF TTS Reader?](#-why-pdf-tts-reader)
-- [Who Is This For?](#-who-is-this-for)
-- [Features](#-features)
-- [Quick Start](#-quick-start)
-- [Screenshots](#-screenshots)
-- [How It Works](#-how-it-works)
-- [Keyboard Shortcuts](#-keyboard-shortcuts)
-- [Tech Stack](#-tech-stack)
-- [FAQ](#-faq)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [License](#-license)
-- [Contact](#-contact)
-
----
-
 ## 💡 Why PDF TTS Reader?
 
 Most PDF readers don't have text-to-speech. The ones that do require cloud uploads, subscriptions, or accounts. This tool does **none of that.**
