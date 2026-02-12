@@ -87,12 +87,21 @@ function Section({
   return (
     <div
       style={{
-        backgroundColor: isOpen ? '#eef2ff' : '#f1f5f9',
-        border: isOpen ? '1px solid #c7d2fe' : '1px solid #e2e8f0',
-        borderRadius: '12px',
+        backgroundColor: isOpen
+          ? 'rgba(238, 242, 255, 0.55)'
+          : 'rgba(255, 255, 255, 0.35)',
+        border: isOpen
+          ? '1px solid rgba(199, 210, 254, 0.6)'
+          : '1px solid rgba(255, 255, 255, 0.45)',
+        borderRadius: '14px',
         overflow: 'hidden',
         marginBottom: '8px',
-        transition: 'background-color 0.3s ease, border-color 0.3s ease',
+        transition: 'background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        boxShadow: isOpen
+          ? '0 4px 24px rgba(79, 70, 229, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)'
+          : '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.5)',
       }}
     >
       <button
@@ -218,14 +227,16 @@ function Shortcut({ keys, action }: { keys: string; action: string }) {
       <kbd
         style={{
           padding: '4px 10px',
-          borderRadius: '6px',
+          borderRadius: '8px',
           fontSize: '12px',
           fontFamily: 'monospace',
           fontWeight: 600,
-          backgroundColor: '#ffffff',
-          border: '1px solid #e2e8f0',
+          backgroundColor: 'rgba(255, 255, 255, 0.55)',
+          border: '1px solid rgba(255, 255, 255, 0.6)',
           color: '#0f172a',
-          boxShadow: '0 2px 0 #e2e8f0',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
         }}
       >
         {keys}
@@ -283,7 +294,9 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '16px',
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
@@ -294,12 +307,15 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           width: '100%',
           maxWidth: '640px',
           maxHeight: '90vh',
-          borderRadius: '16px',
+          borderRadius: '20px',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          backgroundColor: 'rgba(255, 255, 255, 0.65)',
+          backdropFilter: 'blur(40px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          boxShadow: '0 8px 60px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+          border: '1px solid rgba(255, 255, 255, 0.5)',
         }}
       >
         {/* Header */}
@@ -308,8 +324,10 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
             position: 'relative',
             padding: '24px 24px 16px 24px',
             textAlign: 'center',
-            borderBottom: '1px solid #e2e8f0',
-            backgroundColor: '#f8fafc',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.4)',
+            backgroundColor: 'rgba(248, 250, 252, 0.45)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             flexShrink: 0,
           }}
         >
@@ -321,14 +339,18 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
               right: '16px',
               width: '32px',
               height: '32px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#f1f5f9',
+              borderRadius: '50%',
+              border: '1px solid rgba(255, 255, 255, 0.5)',
+              backgroundColor: 'rgba(255, 255, 255, 0.4)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
               color: '#475569',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7)',
+              transition: 'all 0.2s ease',
             }}
           >
             <X size={16} />
@@ -491,8 +513,10 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
         <div
           style={{
             padding: '20px 24px',
-            borderTop: '1px solid #e2e8f0',
-            backgroundColor: '#f8fafc',
+            borderTop: '1px solid rgba(255, 255, 255, 0.4)',
+            backgroundColor: 'rgba(248, 250, 252, 0.45)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             flexShrink: 0,
           }}
         >
@@ -528,12 +552,15 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              border: 'none',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.85), rgba(59, 130, 246, 0.85))',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
               color: 'white',
               cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(139, 92, 246, 0.3)',
+              boxShadow: '0 4px 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+              transition: 'all 0.2s ease',
             }}
           >
             <span>✨</span>
