@@ -8,6 +8,7 @@
    - Voice preview/sample button
    - Language display
    - Selected voice indicator
+   - MOBILE: Full-screen overlay
    ======================================== */
 
 import { Search, Volume2, Check, Users, User, HelpCircle, X, Mic } from 'lucide-react';
@@ -27,6 +28,7 @@ interface VoicePickerProps {
   onPreviewVoice: (voice: VoiceInfo) => void;
   isOpen: boolean;
   onClose: () => void;
+  isMobile?: boolean;
 }
 
 /**
@@ -84,39 +86,58 @@ export default function VoicePicker({
   onPreviewVoice,
   isOpen,
   onClose,
+  isMobile = false,
 }: VoicePickerProps) {
   if (!isOpen) return null;
 
+  // Mobile: full-screen overlay. Desktop: absolute sidebar.
+  const containerStyle: React.CSSProperties = isMobile
+    ? {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 45,
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: 'var(--bg-secondary)',
+      animation: 'slide-in-up 0.3s ease forwards',
+    }
+    : {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      width: '340px',
+      zIndex: 30,
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: 'var(--bg-secondary)',
+      borderLeft: '1px solid var(--border-color)',
+      animation: 'slide-in-right 0.3s ease forwards',
+    };
+
   return (
     <div
-      className="glass-strong"
-      style={{
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        width: '340px',
-        zIndex: 30,
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'var(--bg-secondary)',
-        borderLeft: '1px solid var(--border-color)',
-        animation: 'slide-in-right 0.3s ease forwards',
-      }}
+      className={isMobile ? '' : 'glass-strong'}
+      style={containerStyle}
     >
-      {/* Slide animation */}
+      {/* Slide animations */}
       <style>{`
         @keyframes slide-in-right {
           from { transform: translateX(100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slide-in-up {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
         }
       `}</style>
 
       {/* ---- Header ---- */}
       <div
         style={{
-          padding: '16px',
+          padding: isMobile ? '16px' : '16px',
           borderBottom: '1px solid var(--border-color)',
+          flexShrink: 0,
         }}
       >
         <div
@@ -185,7 +206,7 @@ export default function VoicePicker({
               border: '1px solid var(--border-color)',
               backgroundColor: 'var(--bg-primary)',
               color: 'var(--text-primary)',
-              fontSize: '13px',
+              fontSize: isMobile ? '16px' : '13px', // 16px prevents iOS zoom
               outline: 'none',
               transition: 'border-color 0.15s ease',
             }}
@@ -242,7 +263,7 @@ export default function VoicePicker({
               onClick={() => onGenderChange(option.value)}
               style={{
                 flex: 1,
-                padding: '6px 8px',
+                padding: isMobile ? '10px 8px' : '6px 8px',
                 borderRadius: '8px',
                 border: '1px solid',
                 borderColor:
@@ -291,6 +312,7 @@ export default function VoicePicker({
           flex: 1,
           overflowY: 'auto',
           padding: '8px',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {/* Loading State */}
@@ -370,7 +392,7 @@ export default function VoicePicker({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                padding: '10px 12px',
+                padding: isMobile ? '12px' : '10px 12px',
                 borderRadius: '10px',
                 marginBottom: '4px',
                 cursor: 'pointer',
@@ -436,6 +458,7 @@ export default function VoicePicker({
                     alignItems: 'center',
                     gap: '6px',
                     marginTop: '2px',
+                    flexWrap: 'wrap',
                   }}
                 >
                   {/* Language */}
@@ -490,8 +513,8 @@ export default function VoicePicker({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: '32px',
-                    height: '32px',
+                    width: isMobile ? '40px' : '32px',
+                    height: isMobile ? '40px' : '32px',
                     borderRadius: '8px',
                     border: '1px solid var(--border-color)',
                     backgroundColor: 'var(--bg-primary)',
@@ -534,6 +557,7 @@ export default function VoicePicker({
           color: 'var(--text-muted)',
           textAlign: 'center',
           lineHeight: '1.4',
+          flexShrink: 0,
         }}
       >
         💡 Gender labels are best-effort estimates.

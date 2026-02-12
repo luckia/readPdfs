@@ -4,6 +4,7 @@
    
    Zoom in / out / fit-to-width controls.
    Shows current zoom percentage.
+   MOBILE: Compact — hides percentage + divider
    ======================================== */
 
 import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
@@ -15,6 +16,7 @@ interface ZoomControlsProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onFitWidth: () => void;
+  isMobile?: boolean;
 }
 
 /** Min and max zoom levels */
@@ -28,11 +30,14 @@ export default function ZoomControls({
   onZoomIn,
   onZoomOut,
   onFitWidth,
+  isMobile = false,
 }: ZoomControlsProps) {
   const percentage = Math.round(scale * 100);
   const canZoomIn = scale < MAX_ZOOM;
   const canZoomOut = scale > MIN_ZOOM;
   const isFitWidth = mode === 'fit-width';
+
+  const btnSize = isMobile ? '28px' : '34px';
 
   return (
     <div
@@ -40,8 +45,8 @@ export default function ZoomControls({
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '4px',
-        padding: '4px',
+        gap: isMobile ? '2px' : '4px',
+        padding: isMobile ? '3px' : '4px',
         borderRadius: '12px',
       }}
     >
@@ -52,32 +57,34 @@ export default function ZoomControls({
           disabled={!canZoomOut}
           className="btn-icon"
           style={{
-            width: '34px',
-            height: '34px',
+            width: btnSize,
+            height: btnSize,
             borderRadius: '8px',
             opacity: canZoomOut ? 1 : 0.4,
             cursor: canZoomOut ? 'pointer' : 'not-allowed',
           }}
           aria-label="Zoom out"
         >
-          <ZoomOut size={16} />
+          <ZoomOut size={isMobile ? 14 : 16} />
         </button>
       </div>
 
-      {/* Percentage Display */}
-      <div
-        style={{
-          minWidth: '52px',
-          textAlign: 'center',
-          fontSize: '12px',
-          fontWeight: 600,
-          color: 'var(--text-primary)',
-          padding: '0 4px',
-          userSelect: 'none',
-        }}
-      >
-        {percentage}%
-      </div>
+      {/* Percentage Display — hide on mobile */}
+      {!isMobile && (
+        <div
+          style={{
+            minWidth: '52px',
+            textAlign: 'center',
+            fontSize: '12px',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+            padding: '0 4px',
+            userSelect: 'none',
+          }}
+        >
+          {percentage}%
+        </div>
+      )}
 
       {/* Zoom In */}
       <div className="tooltip-wrapper" data-tooltip="Zoom In (Ctrl + =)">
@@ -86,27 +93,29 @@ export default function ZoomControls({
           disabled={!canZoomIn}
           className="btn-icon"
           style={{
-            width: '34px',
-            height: '34px',
+            width: btnSize,
+            height: btnSize,
             borderRadius: '8px',
             opacity: canZoomIn ? 1 : 0.4,
             cursor: canZoomIn ? 'pointer' : 'not-allowed',
           }}
           aria-label="Zoom in"
         >
-          <ZoomIn size={16} />
+          <ZoomIn size={isMobile ? 14 : 16} />
         </button>
       </div>
 
-      {/* Divider */}
-      <div
-        style={{
-          width: '1px',
-          height: '20px',
-          backgroundColor: 'var(--border-color)',
-          margin: '0 2px',
-        }}
-      />
+      {/* Divider — hide on mobile */}
+      {!isMobile && (
+        <div
+          style={{
+            width: '1px',
+            height: '20px',
+            backgroundColor: 'var(--border-color)',
+            margin: '0 2px',
+          }}
+        />
+      )}
 
       {/* Fit to Width */}
       <div className="tooltip-wrapper" data-tooltip="Fit to Width (Ctrl + 0)">
@@ -114,8 +123,8 @@ export default function ZoomControls({
           onClick={onFitWidth}
           className="btn-icon"
           style={{
-            width: '34px',
-            height: '34px',
+            width: btnSize,
+            height: btnSize,
             borderRadius: '8px',
             backgroundColor: isFitWidth ? 'var(--accent-start)' : undefined,
             color: isFitWidth ? 'white' : undefined,
@@ -123,7 +132,7 @@ export default function ZoomControls({
           }}
           aria-label="Fit to width"
         >
-          <Maximize size={16} />
+          <Maximize size={isMobile ? 14 : 16} />
         </button>
       </div>
     </div>

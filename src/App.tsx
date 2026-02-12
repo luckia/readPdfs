@@ -64,7 +64,7 @@ export default function App() {
   const [jumpError, setJumpError] = useState('');
   const jumpErrorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const jumpToPageFnRef = useRef<(pageNum: number) => void>(() => {});
+  const jumpToPageFnRef = useRef<(pageNum: number) => void>(() => { });
   const calculateFitWidthFnRef = useRef<() => number>(() => 1.0);
 
   useEffect(() => {
@@ -288,23 +288,23 @@ export default function App() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '8px 16px',
+            padding: isMobile ? '6px 10px' : '8px 16px',
             borderBottom: '1px solid var(--border-color)',
             backgroundColor: 'var(--bg-secondary)',
             flexShrink: 0,
             zIndex: 20,
-            minHeight: '60px',
-            gap: '12px',
+            minHeight: isMobile ? '48px' : '60px',
+            gap: isMobile ? '6px' : '12px',
           }}
         >
           {/* LEFT: Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-            <span style={{ fontSize: '22px' }}>🎧</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', flexShrink: 0 }}>
+            <span style={{ fontSize: isMobile ? '18px' : '22px' }}>🎧</span>
             <div>
               <h1
                 className="gradient-text"
                 style={{
-                  fontSize: '15px',
+                  fontSize: isMobile ? '13px' : '15px',
                   fontWeight: 700,
                   lineHeight: '1.2',
                   letterSpacing: '-0.02em',
@@ -312,15 +312,17 @@ export default function App() {
               >
                 PDF TTS READER
               </h1>
-              <p
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--text-muted)',
-                  fontWeight: 500,
-                }}
-              >
-                Free · Private · Local
-              </p>
+              {!isMobile && (
+                <p
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--text-muted)',
+                    fontWeight: 500,
+                  }}
+                >
+                  Free · Private · Local
+                </p>
+              )}
             </div>
           </div>
 
@@ -343,6 +345,7 @@ export default function App() {
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}
                 onFitWidth={handleFitWidth}
+                isMobile={isMobile}
               />
             </div>
           )}
@@ -351,7 +354,7 @@ export default function App() {
           {!showPdfViewer && <div style={{ flex: '1 1 auto' }} />}
 
           {/* RIGHT: Page nav + Action buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '3px' : '6px', flexShrink: 0 }}>
 
             {/* Go to Page + Page indicator (only when PDF loaded) */}
             {showPdfViewer && pdf.pdfData && (
@@ -502,14 +505,14 @@ export default function App() {
                   onClick={() => { speech.stop(); pdf.clearPdf(); setScale(null); setZoomMode('fit-width'); setIsMobileDrawerOpen(false); }}
                   className="btn-icon"
                   style={{
-                    width: '34px',
-                    height: '34px',
+                    width: isMobile ? '30px' : '34px',
+                    height: isMobile ? '30px' : '34px',
                     borderRadius: 'var(--radius-md)',
                     color: 'var(--error)',
                   }}
                   aria-label="Upload new PDF"
                 >
-                  <span style={{ fontSize: '13px' }}>📄</span>
+                  <span style={{ fontSize: isMobile ? '11px' : '13px' }}>📄</span>
                 </button>
               </div>
             )}
@@ -519,10 +522,10 @@ export default function App() {
               <button
                 onClick={() => setShowWelcome(true)}
                 className="btn-icon"
-                style={{ width: '34px', height: '34px', borderRadius: 'var(--radius-md)' }}
+                style={{ width: isMobile ? '30px' : '34px', height: isMobile ? '30px' : '34px', borderRadius: 'var(--radius-md)' }}
                 aria-label="Show instructions"
               >
-                <span style={{ fontSize: '15px' }}>❓</span>
+                <span style={{ fontSize: isMobile ? '13px' : '15px' }}>❓</span>
               </button>
             </div>
 
@@ -624,6 +627,7 @@ export default function App() {
                 loadingMessage={pdf.loadingMessage}
                 loadingProgress={pdf.loadingProgress}
                 error={pdf.loadingError}
+                isMobile={isMobile}
               />
             )}
 
@@ -667,17 +671,18 @@ export default function App() {
               onPreviewVoice={voices.previewVoice}
               isOpen={showVoicePicker}
               onClose={() => setShowVoicePicker(false)}
+              isMobile={isMobile}
             />
           )}
         </div>
 
         {/* ---- Footer ---- */}
-        <Footer />
+        <Footer isMobile={isMobile} />
 
         {/* ---- Modals & Overlays ---- */}
         <WelcomeModal isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
         <KeyboardShortcuts isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
-        <DefinitionPopup state={dictionary.state} isOpen={dictionary.isOpen} onClose={dictionary.close} />
+        <DefinitionPopup state={dictionary.state} isOpen={dictionary.isOpen} onClose={dictionary.close} isMobile={isMobile} />
         <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
         <FloatingActionButton
           status={speech.status}

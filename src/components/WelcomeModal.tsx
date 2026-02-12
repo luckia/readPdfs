@@ -299,6 +299,8 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   if (!isOpen) return null;
 
+  const isMobileView = window.innerWidth < 768;
+
   const handleClose = () => {
     if (dontShowAgain) {
       try {
@@ -318,9 +320,9 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
         inset: 0,
         zIndex: 50,
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isMobileView ? 'flex-end' : 'center',
         justifyContent: 'center',
-        padding: '16px',
+        padding: isMobileView ? '0' : '16px',
         backgroundColor: 'rgba(0, 0, 0, 0.35)',
         backdropFilter: 'blur(24px) saturate(150%)',
         WebkitBackdropFilter: 'blur(24px) saturate(150%)',
@@ -334,21 +336,29 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
       <div
         style={{
           width: '100%',
-          maxWidth: '640px',
-          maxHeight: '90vh',
-          borderRadius: '24px',
+          maxWidth: isMobileView ? '100%' : '640px',
+          maxHeight: isMobileView ? '95vh' : '90vh',
+          borderRadius: isMobileView ? '20px 20px 0 0' : '24px',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
           ...glass.panel,
-          animation: 'modal-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          animation: isMobileView
+            ? 'slide-in-up-modal 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+            : 'modal-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         }}
       >
+        <style>{`
+          @keyframes slide-in-up-modal {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+        `}</style>
         {/* ── Header ── */}
         <div
           style={{
             position: 'relative',
-            padding: '28px 24px 18px 24px',
+            padding: isMobileView ? '20px 16px 14px 16px' : '28px 24px 18px 24px',
             textAlign: 'center',
             borderBottom: `1px solid ${glass.chrome.borderColor}`,
             background: glass.chrome.background,
@@ -378,12 +388,12 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
             <X size={14} />
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '30px' }}>🎧</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobileView ? '8px' : '10px', marginBottom: '10px' }}>
+            <span style={{ fontSize: isMobileView ? '24px' : '30px' }}>🎧</span>
             <h1
               className="gradient-text"
               style={{
-                fontSize: '22px',
+                fontSize: isMobileView ? '18px' : '22px',
                 fontWeight: 800,
                 letterSpacing: '-0.02em',
                 fontFamily: 'var(--font-ui)',
