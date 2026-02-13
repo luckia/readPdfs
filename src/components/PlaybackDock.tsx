@@ -116,8 +116,8 @@ export default function PlaybackDock({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                width: '44px',
-                                height: '44px',
+                                width: window.innerWidth < 480 ? '36px' : '44px',
+                                height: window.innerWidth < 480 ? '36px' : '44px',
                                 borderRadius: '50%',
                                 border: 'none',
                                 background: 'var(--accent)',
@@ -191,6 +191,7 @@ export default function PlaybackDock({
                                 fontWeight: 600,
                                 color: isPlaying ? 'var(--accent)' : 'var(--warning)',
                                 whiteSpace: 'nowrap',
+                                display: window.innerWidth < 480 ? 'none' : 'inline',
                             }}
                         >
                             {isPlaying ? 'Reading…' : 'Paused'}
@@ -202,6 +203,7 @@ export default function PlaybackDock({
                                 fontSize: '13px',
                                 color: 'var(--text-muted)',
                                 whiteSpace: 'nowrap',
+                                display: window.innerWidth < 480 ? 'none' : 'inline',
                             }}
                         >
                             Click any word to play
@@ -209,7 +211,11 @@ export default function PlaybackDock({
                     )}
                     {currentIndex >= 0 && totalWords > 0 && (
                         <span style={{ fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                            {currentIndex.toLocaleString()} / {totalWords.toLocaleString()} words · {Math.round(progressPercent)}%
+                            {/* Minimal progress on mobile */}
+                            {window.innerWidth < 480
+                                ? `${Math.round(progressPercent)}%`
+                                : `${currentIndex.toLocaleString()} / ${totalWords.toLocaleString()} words · ${Math.round(progressPercent)}%`
+                            }
                         </span>
                     )}
                 </div>
@@ -221,6 +227,10 @@ export default function PlaybackDock({
                         alignItems: 'center',
                         gap: '4px',
                         flexShrink: 0,
+                        overflowX: window.innerWidth < 480 ? 'auto' : 'visible',
+                        maxWidth: window.innerWidth < 480 ? '160px' : 'none',
+                        scrollbarWidth: 'none', // Hide scrollbar
+                        maskImage: window.innerWidth < 480 ? 'linear-gradient(to right, transparent, black 10px, black 90%, transparent)' : 'none',
                     }}
                 >
                     {/* Speed chip */}

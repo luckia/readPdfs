@@ -311,7 +311,7 @@ export default function App() {
                 objectFit: 'contain'
               }}
             />
-            <div style={{ minWidth: 0 }}>
+            <div style={{ minWidth: 0, display: window.innerWidth < 480 ? 'none' : 'block' }}>
               <h1
                 className="gradient-text no-select"
                 style={{
