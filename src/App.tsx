@@ -274,6 +274,8 @@ export default function App() {
           display: 'flex',
           flexDirection: 'column',
           height: '100vh',
+          // @ts-ignore
+          height: '100dvh',
           overflow: 'hidden',
           backgroundColor: 'var(--bg-primary)',
           color: 'var(--text-primary)',
