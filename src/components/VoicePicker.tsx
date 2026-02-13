@@ -397,10 +397,14 @@ export default function VoicePicker({
               role="option"
               aria-selected={isSelected}
               tabIndex={0}
-              onClick={() => onSelectVoice(voiceInfo)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectVoice(voiceInfo);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
+                  e.stopPropagation();
                   onSelectVoice(voiceInfo);
                 }
               }}

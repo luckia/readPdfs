@@ -18,7 +18,7 @@ const STORAGE_KEY = 'pdf-tts-theme';
  */
 function getSystemTheme(): Theme {
   if (typeof window === 'undefined') return 'light';
-  
+
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   return prefersDark ? 'dark' : 'light';
 }
@@ -35,7 +35,7 @@ function loadSavedTheme(): Theme {
   } catch {
     // localStorage might not be available
   }
-  return getSystemTheme();
+  return 'dark'; // Default to dark mode for all users
 }
 
 /**
@@ -45,7 +45,7 @@ function loadSavedTheme(): Theme {
 function applyTheme(theme: Theme): void {
   const root = document.documentElement;
   root.setAttribute('data-theme', theme);
-  
+
   // Also update meta theme-color for mobile browsers
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
   const colors: Record<Theme, string> = {
@@ -53,7 +53,7 @@ function applyTheme(theme: Theme): void {
     dark: '#0f0f23',
     sepia: '#f5f0e8',
   };
-  
+
   if (metaThemeColor) {
     metaThemeColor.setAttribute('content', colors[theme]);
   }
@@ -103,7 +103,7 @@ export function useTheme() {
   // Listen for system theme changes (if user hasn't manually set one)
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = () => {
       // Only auto-switch if user hasn't manually saved a preference
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -137,13 +137,13 @@ export function useTheme() {
       const currentIndex = THEME_CYCLE.indexOf(current);
       const nextIndex = (currentIndex + 1) % THEME_CYCLE.length;
       const nextTheme = THEME_CYCLE[nextIndex];
-      
+
       try {
         localStorage.setItem(STORAGE_KEY, nextTheme);
       } catch {
         // Ignore storage errors
       }
-      
+
       return nextTheme;
     });
   }, []);
