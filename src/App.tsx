@@ -31,7 +31,8 @@ import DefinitionPopup from './components/DefinitionPopup';
 import ToastContainer from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
 import ZoomControls, { MIN_ZOOM, MAX_ZOOM, ZOOM_STEP } from './components/ZoomControls';
-import { BookOpen, HelpCircle, FileUp } from 'lucide-react';
+import { BookOpen, HelpCircle, FileUp, Github, Mail } from 'lucide-react';
+import logo from './assets/logo.png';
 
 export default function App() {
   const theme = useTheme();
@@ -128,27 +129,23 @@ export default function App() {
       if (!voiceInfo) return;
       voices.selectVoice(voiceInfo);
       speech.changeVoice(voiceInfo);
-      toast.voiceChanged(voiceInfo.name);
+      // Removed toast to update in background
     },
-    [voices, speech, toast]
+    [voices, speech]
   );
 
   const handleRateChange = useCallback(
     (newRate: number) => {
       speech.changeRate(newRate);
-      toast.speedChanged(newRate);
+      // Removed toast to update in background
     },
-    [speech, toast]
+    [speech]
   );
 
   const handleThemeCycle = useCallback(() => {
     theme.cycleTheme();
-    const themeNames = { light: 'Light', dark: 'Dark', sepia: 'Sepia' };
-    const cycle = ['light', 'dark', 'sepia'] as const;
-    const currentIdx = cycle.indexOf(theme.theme);
-    const nextTheme = cycle[(currentIdx + 1) % 3];
-    toast.themeChanged(themeNames[nextTheme]);
-  }, [theme, toast]);
+    // Removed toast to update in background
+  }, [theme]);
 
   const handleHighlightModeChange = useCallback(
     (mode: 'word' | 'sentence') => { speech.setHighlightMode(mode); },
@@ -301,10 +298,20 @@ export default function App() {
         >
           {/* LEFT: App mark + document name */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, minWidth: 0 }}>
-            <span style={{ fontSize: '20px', flexShrink: 0 }}>🎧</span>
+            <img
+              src={logo}
+              alt="Logo"
+              className="no-select"
+              style={{
+                height: '32px',
+                width: 'auto',
+                flexShrink: 0,
+                objectFit: 'contain'
+              }}
+            />
             <div style={{ minWidth: 0 }}>
               <h1
-                className="gradient-text"
+                className="gradient-text no-select"
                 style={{
                   fontSize: '14px',
                   fontWeight: 700,
@@ -491,6 +498,53 @@ export default function App() {
               </div>
             )}
 
+            {/* GitHub */}
+            <div className="tooltip-wrapper tooltip-bottom" data-tooltip="GitHub Repo">
+              <a
+                href="https://github.com/analystsandeep/pdf-text-to-speech-reader"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-icon"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-secondary)',
+                  textDecoration: 'none',
+                }}
+                aria-label="GitHub Repository"
+              >
+                <Github size={18} />
+              </a>
+            </div>
+
+            {/* Email */}
+            <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Copy Email">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText('itbusinessanalystsandeep@gmail.com');
+                  toast.info('Email copied to clipboard');
+                }}
+                className="btn-icon"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-secondary)',
+                  border: 'none',
+                }}
+                aria-label="Copy Contact Email"
+              >
+                <Mail size={18} />
+              </button>
+            </div>
+
             {/* Help */}
             <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Help">
               <button
@@ -499,7 +553,7 @@ export default function App() {
                 style={{ width: '34px', height: '34px', borderRadius: 'var(--radius-sm)' }}
                 aria-label="Show instructions"
               >
-                <HelpCircle size={16} />
+                <HelpCircle size={18} />
               </button>
             </div>
 
@@ -542,6 +596,7 @@ export default function App() {
             flexDirection: 'column',
             overflow: 'hidden',
             position: 'relative',
+            backgroundColor: 'var(--bg-primary)',
           }}
         >
           {showUploader && (
@@ -556,27 +611,29 @@ export default function App() {
           )}
 
           {showPdfViewer && pdf.pdfData && pdf.getPdfDoc() && (
-            <PdfViewer
-              pdfDoc={pdf.getPdfDoc()!}
-              pdfData={pdf.pdfData}
-              currentWordIndex={speech.currentIndex}
-              highlightMode={speech.highlightMode}
-              isPlaying={speech.isPlaying}
-              selectedVoice={voices.selectedVoice}
-              onWordClick={handleWordClick}
-              onWordDoubleClick={handleWordDoubleClick}
-              onWordRightClick={handleWordRightClick}
-              onPageChange={setCurrentPage}
-              currentPage={currentPage}
-              scale={scale}
-              setScale={setScale}
-              zoomMode={zoomMode}
-              setZoomMode={setZoomMode}
-              jumpToPageFnRef={jumpToPageFnRef}
-              calculateFitWidthFnRef={calculateFitWidthFnRef}
-              blurMode={blurMode}
-              speechStatus={speech.status}
-            />
+            <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+              <PdfViewer
+                pdfDoc={pdf.getPdfDoc()!}
+                pdfData={pdf.pdfData}
+                currentWordIndex={speech.currentIndex}
+                highlightMode={speech.highlightMode}
+                isPlaying={speech.isPlaying}
+                selectedVoice={voices.selectedVoice}
+                onWordClick={handleWordClick}
+                onWordDoubleClick={handleWordDoubleClick}
+                onWordRightClick={handleWordRightClick}
+                onPageChange={setCurrentPage}
+                currentPage={currentPage}
+                scale={scale}
+                setScale={setScale}
+                zoomMode={zoomMode}
+                setZoomMode={setZoomMode}
+                jumpToPageFnRef={jumpToPageFnRef}
+                calculateFitWidthFnRef={calculateFitWidthFnRef}
+                blurMode={blurMode}
+                speechStatus={speech.status}
+              />
+            </div>
           )}
         </div>
 
@@ -620,6 +677,7 @@ export default function App() {
             onBlurModeToggle={handleBlurModeToggle}
             isOpen={isDrawerOpen}
             onClose={() => setIsDrawerOpen(false)}
+            isMobile={isMobile}
           />
         )}
 

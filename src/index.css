@@ -224,6 +224,22 @@ body {
   height: 100vh;
   line-height: 1.5;
   font-size: 14px;
+  cursor: default;
+  /* Prevent I-beam cursor on UI text */
+  caret-color: transparent;
+  /* Hide blinking cursor (F7 caret browsing) */
+}
+
+/* Restore caret for inputs */
+input,
+textarea,
+[contenteditable="true"] {
+  caret-color: auto;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 #root {
@@ -457,7 +473,11 @@ button {
   border-radius: 8px;
   font-size: 11px;
   font-weight: 500;
-  white-space: nowrap;
+  white-space: normal;
+  width: max-content;
+  max-width: 240px;
+  line-height: 1.4;
+  text-align: center;
   background: var(--text-primary);
   color: var(--bg-primary);
   pointer-events: none;
@@ -465,9 +485,6 @@ button {
   transition: opacity var(--trans-fast) ease, transform var(--trans-fast) ease;
   z-index: 9999;
   box-shadow: var(--shadow-md);
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .tooltip-wrapper:hover::after {
@@ -582,6 +599,34 @@ button {
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes overlay-out {
+  0% {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+
+  100% {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+}
+
+@keyframes modal-out-dramatic {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+
+  30% {
+    transform: scale(1.02) translateY(-10px) rotate(0.5deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.85) translateY(40px) rotate(-2deg);
   }
 }
 
@@ -790,7 +835,18 @@ input[type="number"] {
   }
 }
 
-/* ---------- Reduced Motion ---------- */
+/* ----------@keyframes glass-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ---------- Reduce Motion ---------- */
 @media (prefers-reduced-motion: reduce) {
 
   *,
@@ -800,4 +856,61 @@ input[type="number"] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ---------- Controls Panel Utilities ---------- */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+[data-theme="dark"] .glass-panel {
+  background: rgba(10, 14, 23, 0.75);
+}
+
+.stagger-appear {
+  animation: fade-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@keyframes fade-slide-up {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.segmented-control {
+  background: var(--bg-tertiary);
+  padding: 4px;
+  border-radius: 12px;
+  display: flex;
+  gap: 4px;
+}
+
+.segmented-tab {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+}
+
+.segmented-tab.active {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode adjustment for segmented control */
+[data-theme="dark"] .segmented-tab.active {
+  background: var(--bg-elevated);
 }

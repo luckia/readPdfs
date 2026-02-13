@@ -166,14 +166,16 @@ export default function VoicePicker({
               Voice Picker
             </h3>
           </div>
-          <button
-            onClick={onClose}
-            className="btn-icon"
-            style={{ width: '32px', height: '32px' }}
-            aria-label="Close voice picker"
-          >
-            <X size={16} />
-          </button>
+          <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Close">
+            <button
+              onClick={onClose}
+              className="btn-icon"
+              style={{ width: '32px', height: '32px' }}
+              aria-label="Close voice picker"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Search Bar */}
@@ -218,29 +220,31 @@ export default function VoicePicker({
             }}
           />
           {searchQuery && (
-            <button
-              onClick={() => onSearchChange('')}
-              style={{
-                position: 'absolute',
-                right: '8px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '20px',
-                height: '20px',
-                borderRadius: '50%',
-                border: 'none',
-                backgroundColor: 'var(--bg-tertiary)',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-                fontSize: '10px',
-              }}
-              aria-label="Clear search"
-            >
-              <X size={10} />
-            </button>
+            <div className="tooltip-wrapper" data-tooltip="Clear search">
+              <button
+                onClick={() => onSearchChange('')}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  fontSize: '10px',
+                }}
+                aria-label="Clear search"
+              >
+                <X size={10} />
+              </button>
+            </div>
           )}
         </div>
 
@@ -258,39 +262,40 @@ export default function VoicePicker({
               { value: 'male', label: 'Male', icon: '♂' },
             ] as const
           ).map((option) => (
-            <button
-              key={option.value}
-              onClick={() => onGenderChange(option.value)}
-              style={{
-                flex: 1,
-                padding: isMobile ? '10px 8px' : '6px 8px',
-                borderRadius: '8px',
-                border: '1px solid',
-                borderColor:
-                  genderFilter === option.value
-                    ? 'var(--accent-start)'
-                    : 'var(--border-color)',
-                backgroundColor:
-                  genderFilter === option.value
-                    ? 'var(--accent-soft)'
-                    : 'var(--bg-primary)',
-                color:
-                  genderFilter === option.value
-                    ? 'var(--accent-start)'
-                    : 'var(--text-secondary)',
-                fontSize: '12px',
-                fontWeight: genderFilter === option.value ? 600 : 400,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-              }}
-            >
-              <span>{option.icon}</span>
-              <span>{option.label}</span>
-            </button>
+            <div key={option.value} className="tooltip-wrapper" style={{ flex: 1 }} data-tooltip={`Filter: ${option.label}`}>
+              <button
+                onClick={() => onGenderChange(option.value)}
+                style={{
+                  width: '100%',
+                  padding: isMobile ? '10px 8px' : '6px 8px',
+                  borderRadius: '8px',
+                  border: '1px solid',
+                  borderColor:
+                    genderFilter === option.value
+                      ? 'var(--accent-start)'
+                      : 'var(--border-color)',
+                  backgroundColor:
+                    genderFilter === option.value
+                      ? 'var(--accent-soft)'
+                      : 'var(--bg-primary)',
+                  color:
+                    genderFilter === option.value
+                      ? 'var(--accent-start)'
+                      : 'var(--text-secondary)',
+                  fontSize: '12px',
+                  fontWeight: genderFilter === option.value ? 600 : 400,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                }}
+              >
+                <span>{option.icon}</span>
+                <span>{option.label}</span>
+              </button>
+            </div>
           ))}
         </div>
 

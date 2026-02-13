@@ -7,6 +7,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { Upload, FileText, AlertCircle, Lock, Wifi, Zap } from 'lucide-react';
+import SpotlightContainer from './SpotlightContainer';
 
 interface PdfUploaderProps {
   onFileSelect: (file: File) => void;
@@ -148,16 +149,18 @@ export default function PdfUploader({
 
   // ---- Hero + Trust + Upload ----
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100%',
-      padding: isMobile ? '24px 16px' : '48px 32px',
-      backgroundColor: 'var(--bg-primary)',
-      overflow: 'auto',
-    }}>
+    <SpotlightContainer
+      variant="thunder"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        padding: isMobile ? '24px 16px' : '48px 32px',
+        backgroundColor: 'var(--bg-primary)',
+        overflow: 'auto',
+      }}>
       <div style={{
         width: '100%',
         maxWidth: '900px',
@@ -169,7 +172,7 @@ export default function PdfUploader({
       }}>
         {/* LEFT: Hero + Trust */}
         <div style={{ textAlign: isMobile ? 'center' : 'left', order: isMobile ? 2 : 1 }}>
-          <h2 style={{
+          <h2 className="no-select" style={{
             fontSize: isMobile ? '28px' : '36px',
             fontWeight: 700,
             color: 'var(--text-primary)',
@@ -178,7 +181,7 @@ export default function PdfUploader({
             marginBottom: '12px',
           }}>
             Listen to any PDF
-            <span style={{ color: 'var(--accent)' }}> — locally.</span>
+            <span style={{ color: 'var(--accent)' }}> locally</span>
           </h2>
 
           <p style={{
@@ -274,13 +277,18 @@ export default function PdfUploader({
             style={{
               width: '100%',
               padding: isMobile ? '40px 24px' : '56px 40px',
-              borderRadius: 'var(--radius-md)',
-              border: isDragging ? '2px solid var(--accent)' : '2px dashed var(--border-color)',
-              backgroundColor: isDragging ? 'var(--accent-soft)' : 'var(--bg-secondary)',
+              borderRadius: '24px',
+              // Glassmorphism
+              background: isDragging ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
               cursor: 'pointer',
-              transition: 'all 0.25s ease',
+              transition: 'all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)',
               textAlign: 'center',
               transform: isDragging ? 'scale(1.01)' : 'scale(1)',
+              animation: 'glass-enter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
             }}
           >
             <div
@@ -366,6 +374,6 @@ export default function PdfUploader({
       </div>
 
       <input ref={fileInputRef} type="file" accept=".pdf,application/pdf" onChange={handleInputChange} style={{ display: 'none' }} />
-    </div>
+    </SpotlightContainer>
   );
 }

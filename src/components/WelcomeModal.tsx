@@ -51,7 +51,7 @@ const surface = {
     boxShadow: 'none',
   } as React.CSSProperties,
   chrome: {
-    background: 'var(--bg-tertiary)',
+    background: 'transparent',
     borderColor: 'var(--border-subtle)',
   } as React.CSSProperties,
 };
@@ -315,7 +315,9 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
         alignItems: isMobileView ? 'flex-end' : 'center',
         justifyContent: 'center',
         padding: isMobileView ? '0' : '16px',
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)', // Slightly darker for better contrast
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         animation: 'overlay-in 0.25s ease forwards',
       }}
       onClick={(e) => {
@@ -324,6 +326,7 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     >
       {/* ── Glass Panel ── */}
       <div
+        className="glass-panel"
         style={{
           width: '100%',
           maxWidth: isMobileView ? '100%' : '640px',
@@ -332,7 +335,8 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          ...surface.panel,
+          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--shadow-lg)',
           animation: isMobileView
             ? 'slide-in-up-modal 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
             : 'modal-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards',
@@ -392,16 +396,12 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
               FREE PDF TTS READER
             </h2>
           </div>
-          <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-            by Analyst Sandeep
-          </p>
+
           <p style={{ fontSize: '13px', marginTop: '10px', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
             Your free, private PDF reader with text-to-speech.
             Everything runs locally — no data leaves your computer.
           </p>
-          <p style={{ fontSize: '11px', marginTop: '14px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-            👇 Click any section below to learn more
-          </p>
+
         </div>
 
         {/* ── Scrollable Content ── */}
@@ -571,13 +571,10 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
               gap: '8px',
             }}
           >
-            <span>✨</span>
             <span>Get Started</span>
           </button>
 
-          <p style={{ textAlign: 'center', fontSize: '12px', marginTop: '12px', color: 'var(--text-muted)' }}>
-            Developed by Analyst Sandeep
-          </p>
+
         </div>
       </div>
     </div>

@@ -31,7 +31,7 @@ function getNextThemeLabel(theme: Theme): string {
 
 export default function ThemeToggle({ theme, onCycleTheme }: ThemeToggleProps) {
   return (
-    <div className="tooltip-wrapper" data-tooltip={getNextThemeLabel(theme)}>
+    <div className="tooltip-wrapper tooltip-bottom" data-tooltip={getNextThemeLabel(theme)}>
       <button
         onClick={onCycleTheme}
         className="btn-icon"

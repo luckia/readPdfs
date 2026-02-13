@@ -51,7 +51,7 @@ export default function ZoomControls({
       }}
     >
       {/* Zoom Out */}
-      <div className="tooltip-wrapper" data-tooltip="Zoom Out (Ctrl + -)">
+      <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Zoom Out (Ctrl + -)">
         <button
           onClick={onZoomOut}
           disabled={!canZoomOut}
@@ -87,7 +87,7 @@ export default function ZoomControls({
       )}
 
       {/* Zoom In */}
-      <div className="tooltip-wrapper" data-tooltip="Zoom In (Ctrl + =)">
+      <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Zoom In (Ctrl + =)">
         <button
           onClick={onZoomIn}
           disabled={!canZoomIn}
@@ -118,7 +118,7 @@ export default function ZoomControls({
       )}
 
       {/* Fit to Width */}
-      <div className="tooltip-wrapper" data-tooltip="Fit to Width (Ctrl + 0)">
+      <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Fit to Width (Ctrl + 0)">
         <button
           onClick={onFitWidth}
           className="btn-icon"

@@ -6,7 +6,7 @@
    speed, voice, highlight, focus, "Controls"
    ======================================== */
 
-import { Play, Pause, Square, Gauge, Mic, Highlighter, Eye, Settings } from 'lucide-react';
+import { Play, Pause, Square, Gauge, Mic, Highlighter, Eye, Settings, Type } from 'lucide-react';
 import type { SpeechStatus, PdfDocumentData, VoiceInfo } from '../types';
 import Waveform from './Waveform';
 
@@ -108,66 +108,70 @@ export default function PlaybackDock({
                 {/* LEFT: Play/Pause + Stop */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     {/* Play/Pause */}
-                    <button
-                        onClick={onTogglePauseResume}
-                        aria-label={isPlaying ? 'Pause reading' : isPaused ? 'Resume reading' : 'Start reading'}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '44px',
-                            height: '44px',
-                            borderRadius: '50%',
-                            border: 'none',
-                            background: 'var(--accent)',
-                            color: 'white',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                            flexShrink: 0,
-                        }}
-                        onMouseEnter={(e) => {
-                            (e.currentTarget as HTMLElement).style.background = 'var(--accent-hover)';
-                            (e.currentTarget as HTMLElement).style.transform = 'scale(1.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                            (e.currentTarget as HTMLElement).style.background = 'var(--accent)';
-                            (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
-                        }}
-                    >
-                        {isPlaying ? <Pause size={20} /> : <Play size={20} style={{ marginLeft: '2px' }} />}
-                    </button>
-
-                    {/* Stop — only when active */}
-                    {isActive && (
+                    <div className="tooltip-wrapper" data-tooltip={isPlaying ? 'Pause reading' : 'Start reading'}>
                         <button
-                            onClick={onStop}
-                            aria-label="Stop reading"
+                            onClick={onTogglePauseResume}
+                            aria-label={isPlaying ? 'Pause reading' : isPaused ? 'Resume reading' : 'Start reading'}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                width: '36px',
-                                height: '36px',
+                                width: '44px',
+                                height: '44px',
                                 borderRadius: '50%',
-                                border: '1px solid var(--border-color)',
-                                background: 'var(--bg-secondary)',
-                                color: 'var(--text-secondary)',
+                                border: 'none',
+                                background: 'var(--accent)',
+                                color: 'white',
                                 cursor: 'pointer',
                                 transition: 'all 0.15s ease',
+                                flexShrink: 0,
                             }}
                             onMouseEnter={(e) => {
-                                (e.currentTarget as HTMLElement).style.background = 'var(--error)';
-                                (e.currentTarget as HTMLElement).style.color = 'white';
-                                (e.currentTarget as HTMLElement).style.borderColor = 'var(--error)';
+                                (e.currentTarget as HTMLElement).style.background = 'var(--accent-hover)';
+                                (e.currentTarget as HTMLElement).style.transform = 'scale(1.05)';
                             }}
                             onMouseLeave={(e) => {
-                                (e.currentTarget as HTMLElement).style.background = 'var(--bg-secondary)';
-                                (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
-                                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-color)';
+                                (e.currentTarget as HTMLElement).style.background = 'var(--accent)';
+                                (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
                             }}
                         >
-                            <Square size={14} />
+                            {isPlaying ? <Pause size={20} /> : <Play size={20} style={{ marginLeft: '2px' }} />}
                         </button>
+                    </div>
+
+                    {/* Stop — only when active */}
+                    {isActive && (
+                        <div className="tooltip-wrapper" data-tooltip="Stop reading">
+                            <button
+                                onClick={onStop}
+                                aria-label="Stop reading"
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '50%',
+                                    border: '1px solid var(--border-color)',
+                                    background: 'var(--bg-secondary)',
+                                    color: 'var(--text-secondary)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                    (e.currentTarget as HTMLElement).style.background = 'var(--error)';
+                                    (e.currentTarget as HTMLElement).style.color = 'white';
+                                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--error)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    (e.currentTarget as HTMLElement).style.background = 'var(--bg-secondary)';
+                                    (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
+                                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-color)';
+                                }}
+                            >
+                                <Square size={14} />
+                            </button>
+                        </div>
                     )}
 
                     {/* Waveform — small, while playing */}
@@ -193,6 +197,7 @@ export default function PlaybackDock({
                         </span>
                     ) : (
                         <span
+                            className="no-select"
                             style={{
                                 fontSize: '13px',
                                 color: 'var(--text-muted)',
@@ -328,6 +333,35 @@ export default function PlaybackDock({
                         >
                             <Eye size={14} />
                         </button>
+                    </div>
+
+                    {/* Dictionary Info */}
+                    <div className="tooltip-wrapper" data-tooltip="Right-click a word for meaning.">
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                border: '1px solid var(--border-color)',
+                                background: 'var(--bg-tertiary)',
+                                color: 'var(--accent)',
+                                transition: 'all 0.15s ease',
+                                cursor: 'help',
+                            }}
+                            onMouseEnter={(e) => {
+                                (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)';
+                                (e.currentTarget as HTMLElement).style.background = 'var(--accent-soft)';
+                            }}
+                            onMouseLeave={(e) => {
+                                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-color)';
+                                (e.currentTarget as HTMLElement).style.background = 'var(--bg-tertiary)';
+                            }}
+                        >
+                            <Type size={14} />
+                        </div>
                     </div>
 
                     {/* Separator */}
