@@ -260,6 +260,14 @@ export function useDictionary() {
   }, []);
 
   /**
+   * Clear the definition cache.
+   * Call this when loading a new PDF to free memory.
+   */
+  const clearCache = useCallback(() => {
+    definitionCache.clear();
+  }, []);
+
+  /**
    * Close popup when clicking outside or pressing Escape.
    */
   useEffect(() => {
@@ -308,5 +316,6 @@ export function useDictionary() {
     isOpen,
     lookup,
     close,
+    clearCache,
   };
 }

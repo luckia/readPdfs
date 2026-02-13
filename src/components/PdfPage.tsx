@@ -358,7 +358,18 @@ export default function PdfPage({
                 color: 'transparent',
                 zIndex: highlighted ? 5 : 2,
               }}
+              // Accessibility Props
+              tabIndex={0}
+              role="button"
+              aria-label={`Read word: ${word.originalText}`}
               onClick={(e) => { e.stopPropagation(); onWordClick(word.globalIndex); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onWordClick(word.globalIndex);
+                }
+              }}
               onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); onWordDoubleClick(); }}
               onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onWordRightClick(word, { x: e.clientX, y: e.clientY }); }}
               title={word.originalText}

@@ -1,10 +1,10 @@
 /* ========================================
    FREE PDF TTS READER
    by Analyst Sandeep
-   
+
    Main Application Component
-   Redesign: Warm Premium Reader
-   UPDATED: Mobile responsive layout + performance
+   Redesign: Editorial Minimal Reader
+   Layout: Document Bar + Reading Canvas + Playback Dock
    ======================================== */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -25,14 +25,13 @@ import KeyboardShortcuts from './components/KeyboardShortcuts';
 import PdfUploader from './components/PdfUploader';
 import PdfViewer from './components/PdfViewer';
 import ControlsPanel from './components/ControlsPanel';
+import PlaybackDock from './components/PlaybackDock';
 import VoicePicker from './components/VoicePicker';
 import DefinitionPopup from './components/DefinitionPopup';
 import ToastContainer from './components/Toast';
-import FloatingActionButton from './components/FloatingActionButton';
 import ErrorBoundary from './components/ErrorBoundary';
-import Footer from './components/Footer';
 import ZoomControls, { MIN_ZOOM, MAX_ZOOM, ZOOM_STEP } from './components/ZoomControls';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, HelpCircle, FileUp } from 'lucide-react';
 
 export default function App() {
   const theme = useTheme();
@@ -55,9 +54,8 @@ export default function App() {
   // Focus blur mode state
   const [blurMode, setBlurMode] = useState(false);
 
-  // ========== Mobile drawer state ==========
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
-  // ==========================================
+  // Controls drawer state (replaces mobile drawer — works on all sizes)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Jump to page state
   const [jumpToPage, setJumpToPage] = useState('');
@@ -83,22 +81,38 @@ export default function App() {
     if (pdf.pdfData) {
       toast.pdfLoaded(pdf.pdfData.totalPages, pdf.pdfData.totalWordCount, pdf.pdfData.estimatedReadTime);
       if (pdf.pdfData.totalWordCount === 0) toast.noTextFound();
+      // Clear dictionary cache from previous PDF to free memory
+      dictionary.clearCache();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps — toast & dictionary refs are stable
   }, [pdf.pdfData]);
 
   useEffect(() => {
     if (voices.noVoicesAvailable) toast.noVoicesFound();
   }, [voices.noVoicesAvailable]);
 
+  // Debounce to prevent single-click (play) firing before double-click (pause)
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleWordClick = useCallback(
     (globalIndex: number) => {
       if (!pdf.pdfData) return;
-      speech.playFromWord(globalIndex, pdf.pdfData.allWords, voices.selectedVoice);
+      // Delay to allow double-click detection first
+      if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = setTimeout(() => {
+        clickTimerRef.current = null;
+        speech.playFromWord(globalIndex, pdf.pdfData!.allWords, voices.selectedVoice);
+      }, 200);
     },
     [pdf.pdfData, speech, voices.selectedVoice]
   );
 
   const handleWordDoubleClick = useCallback(() => {
+    // Cancel the pending single-click play so we don't play+pause
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
     if (speech.isPlaying) speech.pause();
   }, [speech]);
 
@@ -145,12 +159,6 @@ export default function App() {
     setBlurMode((prev) => !prev);
   }, []);
 
-  // ========== Mobile drawer toggle ==========
-  const handleToggleMobileDrawer = useCallback(() => {
-    setIsMobileDrawerOpen((prev) => !prev);
-  }, []);
-  // ============================================
-
   useEffect(() => {
     speech.onComplete(() => { toast.readingComplete(); });
   }, [speech, toast]);
@@ -162,6 +170,10 @@ export default function App() {
 
       if (e.code === 'Space' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
+        if (speech.status === 'idle') {
+          toast.info('Click any word in the PDF to start reading');
+          return;
+        }
         speech.togglePauseResume();
         return;
       }
@@ -170,9 +182,7 @@ export default function App() {
         if (showShortcuts) { setShowShortcuts(false); return; }
         if (showVoicePicker) { setShowVoicePicker(false); return; }
         if (dictionary.isOpen) { dictionary.close(); return; }
-        // ========== Close mobile drawer on Escape ==========
-        if (isMobileDrawerOpen) { setIsMobileDrawerOpen(false); return; }
-        // ====================================================
+        if (isDrawerOpen) { setIsDrawerOpen(false); return; }
         speech.stop();
         return;
       }
@@ -186,7 +196,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [speech, dictionary, showShortcuts, showVoicePicker, isMobileDrawerOpen]);
+  }, [speech, dictionary, showShortcuts, showVoicePicker, isDrawerOpen]);
 
   // Zoom handlers
   const handleZoomIn = useCallback(() => {
@@ -258,14 +268,6 @@ export default function App() {
   const showPdfViewer = pdf.pdfData && pdf.getPdfDoc();
   const showUploader = !pdf.pdfData;
 
-  // Reading progress
-  const totalWords = pdf.pdfData?.allWords.length || 0;
-  const readingProgressPercent =
-    totalWords > 0 && speech.currentIndex >= 0
-      ? (speech.currentIndex / totalWords) * 100
-      : 0;
-  const showProgressBar = pdf.pdfData && speech.currentIndex >= 0 && totalWords > 0;
-
   const currentScale = scale || 1.0;
 
   return (
@@ -282,37 +284,55 @@ export default function App() {
           position: 'relative',
         }}
       >
-        {/* ---- Header ---- */}
+        {/* ---- Document Bar (Top) ---- */}
         <header
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: isMobile ? '6px 10px' : '8px 16px',
+            padding: isMobile ? '8px 12px' : '8px 16px',
             borderBottom: '1px solid var(--border-color)',
             backgroundColor: 'var(--bg-secondary)',
             flexShrink: 0,
             zIndex: 20,
-            minHeight: isMobile ? '48px' : '60px',
-            gap: isMobile ? '6px' : '12px',
+            minHeight: isMobile ? '48px' : '52px',
+            gap: isMobile ? '8px' : '12px',
           }}
         >
-          {/* LEFT: Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', flexShrink: 0 }}>
-            <span style={{ fontSize: isMobile ? '18px' : '22px' }}>🎧</span>
-            <div>
+          {/* LEFT: App mark + document name */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, minWidth: 0 }}>
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>🎧</span>
+            <div style={{ minWidth: 0 }}>
               <h1
                 className="gradient-text"
                 style={{
-                  fontSize: isMobile ? '13px' : '15px',
+                  fontSize: '14px',
                   fontWeight: 700,
                   lineHeight: '1.2',
                   letterSpacing: '-0.02em',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                PDF TTS READER
+                PDF TTS Reader
               </h1>
-              {!isMobile && (
+              {showPdfViewer && pdf.pdfData && !isMobile && (
+                <p
+                  title={pdf.pdfData.fileName}
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--text-muted)',
+                    fontWeight: 500,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '200px',
+                    cursor: 'default',
+                  }}
+                >
+                  {pdf.pdfData.fileName}
+                </p>
+              )}
+              {!showPdfViewer && !isMobile && (
                 <p
                   style={{
                     fontSize: '11px',
@@ -326,7 +346,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* CENTER: Zoom Controls — shifted left to center over PDF area */}
+          {/* CENTER: Page nav + Zoom (only when PDF loaded) */}
           {showPdfViewer && (
             <div
               style={{
@@ -334,60 +354,41 @@ export default function App() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                /* Offset left by ~120px (half of sidebar width 240px) to center over PDF content */
-                /* On mobile, no offset needed since sidebar is hidden */
-                marginLeft: isMobile ? '0px' : '-120px',
+                gap: '12px',
               }}
             >
-              <ZoomControls
-                scale={currentScale}
-                mode={zoomMode}
-                onZoomIn={handleZoomIn}
-                onZoomOut={handleZoomOut}
-                onFitWidth={handleFitWidth}
-                isMobile={isMobile}
-              />
-            </div>
-          )}
-
-          {/* Spacer when no PDF */}
-          {!showPdfViewer && <div style={{ flex: '1 1 auto' }} />}
-
-          {/* RIGHT: Page nav + Action buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '3px' : '6px', flexShrink: 0 }}>
-
-            {/* Go to Page + Page indicator (only when PDF loaded) */}
-            {showPdfViewer && pdf.pdfData && (
-              <>
+              {/* Page indicator */}
+              {pdf.pdfData && (
                 <div
                   style={{
                     display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    gap: '2px',
-                    marginRight: '4px',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    color: 'var(--text-secondary)',
                   }}
                 >
-                  {/* Row 1: Go to input — hide on very small screens */}
-                  <div
-                    style={{
-                      display: isMobile ? 'none' : 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      position: 'relative',
-                    }}
-                  >
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>
-                      Go to:
-                    </span>
-                    <div style={{ position: 'relative' }}>
+                  <BookOpen size={13} style={{ opacity: 0.6 }} />
+                  <span>
+                    <strong style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {currentPage}
+                    </strong>{' '}
+                    / {pdf.pdfData.totalPages}
+                  </span>
+
+                  {/* Go to page input — desktop only */}
+                  {!isMobile && (
+                    <div style={{ position: 'relative', marginLeft: '4px' }}>
                       <input
                         type="number"
                         min={1}
                         max={pdf.pdfData.totalPages}
                         value={jumpToPage}
                         onChange={(e) => {
-                          setJumpToPage(e.target.value);
+                          // Only allow positive integers: strip decimals, negatives, leading zeros
+                          const cleaned = e.target.value.replace(/[^0-9]/g, '');
+                          setJumpToPage(cleaned);
                           if (jumpError) setJumpError('');
                         }}
                         onKeyDown={(e) => {
@@ -402,20 +403,20 @@ export default function App() {
                         }}
                         onFocus={(e) => {
                           e.target.select();
-                          e.target.style.borderColor = 'var(--accent-start)';
+                          e.target.style.borderColor = 'var(--accent)';
                           e.target.style.boxShadow = '0 0 0 2px var(--focus-ring)';
                         }}
                         onBlur={(e) => {
                           e.target.style.borderColor = jumpError ? 'var(--error)' : 'var(--border-color)';
                           e.target.style.boxShadow = 'none';
                         }}
-                        placeholder={`1-${pdf.pdfData.totalPages}`}
+                        placeholder="Go to"
                         style={{
-                          width: '58px',
+                          width: '56px',
                           padding: '3px 6px',
-                          borderRadius: '6px',
+                          borderRadius: '8px',
                           border: `1.5px solid ${jumpError ? 'var(--error)' : 'var(--border-color)'}`,
-                          backgroundColor: 'var(--bg-primary)',
+                          backgroundColor: 'var(--bg-tertiary)',
                           color: 'var(--text-primary)',
                           fontSize: '11px',
                           fontWeight: 500,
@@ -445,251 +446,208 @@ export default function App() {
                           }}
                         >
                           {jumpError}
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: '-4px',
-                              right: '12px',
-                              transform: 'rotate(45deg)',
-                              width: '8px',
-                              height: '8px',
-                              backgroundColor: 'var(--error)',
-                            }}
-                          />
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* Row 2: Page indicator */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      fontSize: '11px',
-                      fontWeight: 500,
-                      color: 'var(--text-secondary)',
-                      opacity: 0.9,
-                    }}
-                  >
-                    <BookOpen size={11} style={{ opacity: 0.6 }} />
-                    <span>
-                      Page{' '}
-                      <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-                        {currentPage}
-                      </strong>{' '}
-                      of {pdf.pdfData.totalPages}
-                    </span>
-                  </div>
+                  )}
                 </div>
+              )}
 
-                {/* Separator — hide on mobile */}
-                {!isMobile && (
-                  <span
-                    style={{
-                      width: '1px',
-                      height: '28px',
-                      backgroundColor: 'var(--border-color)',
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
-              </>
-            )}
+              {/* Zoom controls — desktop */}
+              {!isMobile && (
+                <ZoomControls
+                  scale={currentScale}
+                  mode={zoomMode}
+                  onZoomIn={handleZoomIn}
+                  onZoomOut={handleZoomOut}
+                  onFitWidth={handleFitWidth}
+                  isMobile={isMobile}
+                />
+              )}
+            </div>
+          )}
 
+          {/* Spacer when no PDF */}
+          {!showPdfViewer && <div style={{ flex: '1 1 auto' }} />}
+
+          {/* RIGHT: Action buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
             {/* Upload New PDF */}
             {pdf.pdfData && (
-              <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Upload New PDF">
+              <div className="tooltip-wrapper tooltip-bottom" data-tooltip="New PDF">
                 <button
-                  onClick={() => { speech.stop(); pdf.clearPdf(); setScale(null); setZoomMode('fit-width'); setIsMobileDrawerOpen(false); }}
+                  onClick={() => { speech.stop(); pdf.clearPdf(); setScale(null); setZoomMode('fit-width'); setIsDrawerOpen(false); }}
                   className="btn-icon"
                   style={{
-                    width: isMobile ? '30px' : '34px',
-                    height: isMobile ? '30px' : '34px',
-                    borderRadius: 'var(--radius-md)',
-                    color: 'var(--error)',
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: 'var(--radius-sm)',
+                    color: 'var(--text-secondary)',
                   }}
                   aria-label="Upload new PDF"
                 >
-                  <span style={{ fontSize: isMobile ? '11px' : '13px' }}>📄</span>
+                  <FileUp size={16} />
                 </button>
               </div>
             )}
 
             {/* Help */}
-            <div className="tooltip-wrapper tooltip-bottom" data-tooltip="How to Use">
+            <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Help">
               <button
                 onClick={() => setShowWelcome(true)}
                 className="btn-icon"
-                style={{ width: isMobile ? '30px' : '34px', height: isMobile ? '30px' : '34px', borderRadius: 'var(--radius-md)' }}
+                style={{ width: '34px', height: '34px', borderRadius: 'var(--radius-sm)' }}
                 aria-label="Show instructions"
               >
-                <span style={{ fontSize: isMobile ? '13px' : '15px' }}>❓</span>
+                <HelpCircle size={16} />
               </button>
             </div>
-
-            {/* Shortcuts — hide on mobile */}
-            {!isMobile && (
-              <div className="tooltip-wrapper tooltip-bottom" data-tooltip="Shortcuts (?)">
-                <button
-                  onClick={() => setShowShortcuts(true)}
-                  className="btn-icon"
-                  style={{ width: '34px', height: '34px', borderRadius: 'var(--radius-md)' }}
-                  aria-label="Show keyboard shortcuts"
-                >
-                  <span style={{ fontSize: '13px' }}>⌨️</span>
-                </button>
-              </div>
-            )}
 
             {/* Theme Toggle */}
             <ThemeToggle theme={theme.theme} onCycleTheme={handleThemeCycle} />
           </div>
         </header>
 
-        {/* ---- READING PROGRESS BAR ---- */}
+        {/* ---- Reading Progress Bar ---- */}
         {showPdfViewer && (
           <div
             style={{
               flexShrink: 0,
-              height: '4px',
-              backgroundColor: showProgressBar ? 'var(--progress-track)' : 'transparent',
+              height: '2px',
+              backgroundColor: speech.currentIndex >= 0 ? 'var(--progress-track)' : 'transparent',
               position: 'relative',
               zIndex: 19,
-              transition: 'background-color 0.3s ease',
             }}
           >
-            <div
-              className={showProgressBar ? 'global-progress-fill' : ''}
-              style={{
-                height: '100%',
-                width: showProgressBar ? `${readingProgressPercent}%` : '0%',
-                background: showProgressBar
-                  ? 'linear-gradient(90deg, var(--accent-start), var(--accent-end))'
-                  : 'transparent',
-                borderRadius: '0 3px 3px 0',
-                transition: 'width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                boxShadow: showProgressBar
-                  ? '0 0 10px rgba(79, 70, 229, 0.4), 0 0 4px rgba(79, 70, 229, 0.2)'
-                  : 'none',
-              }}
-            />
+            {speech.currentIndex >= 0 && pdf.pdfData && pdf.pdfData.allWords.length > 0 && (
+              <div
+                className="global-progress-fill"
+                style={{
+                  height: '100%',
+                  width: `${(speech.currentIndex / pdf.pdfData.allWords.length) * 100}%`,
+                  backgroundColor: 'var(--accent)',
+                  borderRadius: '0 2px 2px 0',
+                  transition: 'width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                }}
+              />
+            )}
           </div>
         )}
 
-        {/* ---- Main Content ---- */}
+        {/* ---- Main Content (Reading Canvas) ---- */}
         <div
           style={{
             flex: 1,
             display: 'flex',
+            flexDirection: 'column',
             overflow: 'hidden',
             position: 'relative',
           }}
         >
-          {/* ControlsPanel — on mobile it renders its own hamburger + drawer overlay */}
-          {showPdfViewer && pdf.pdfData && (
-            <ControlsPanel
-              status={speech.status}
-              currentIndex={speech.currentIndex}
-              rate={speech.rate}
-              highlightMode={speech.highlightMode}
-              pdfData={pdf.pdfData}
-              currentPage={currentPage}
-              selectedVoice={voices.selectedVoice}
-              onTogglePauseResume={speech.togglePauseResume}
-              onStop={speech.stop}
-              onRateChange={handleRateChange}
-              onHighlightModeChange={handleHighlightModeChange}
-              onToggleVoicePicker={() => setShowVoicePicker((prev) => !prev)}
-              isVoicePickerOpen={showVoicePicker}
-              blurMode={blurMode}
-              onBlurModeToggle={handleBlurModeToggle}
+          {showUploader && (
+            <PdfUploader
+              onFileSelect={handleFileSelect}
+              isLoading={pdf.isLoading}
+              loadingMessage={pdf.loadingMessage}
+              loadingProgress={pdf.loadingProgress}
+              error={pdf.loadingError}
               isMobile={isMobile}
-              isMobileDrawerOpen={isMobileDrawerOpen}
-              onToggleMobileDrawer={handleToggleMobileDrawer}
             />
           )}
 
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-              position: 'relative',
-            }}
-          >
-            {showUploader && (
-              <PdfUploader
-                onFileSelect={handleFileSelect}
-                isLoading={pdf.isLoading}
-                loadingMessage={pdf.loadingMessage}
-                loadingProgress={pdf.loadingProgress}
-                error={pdf.loadingError}
-                isMobile={isMobile}
-              />
-            )}
-
-            {showPdfViewer && pdf.pdfData && pdf.getPdfDoc() && (
-              <PdfViewer
-                pdfDoc={pdf.getPdfDoc()!}
-                pdfData={pdf.pdfData}
-                currentWordIndex={speech.currentIndex}
-                highlightMode={speech.highlightMode}
-                isPlaying={speech.isPlaying}
-                selectedVoice={voices.selectedVoice}
-                onWordClick={handleWordClick}
-                onWordDoubleClick={handleWordDoubleClick}
-                onWordRightClick={handleWordRightClick}
-                onPageChange={setCurrentPage}
-                currentPage={currentPage}
-                scale={scale}
-                setScale={setScale}
-                zoomMode={zoomMode}
-                setZoomMode={setZoomMode}
-                jumpToPageFnRef={jumpToPageFnRef}
-                calculateFitWidthFnRef={calculateFitWidthFnRef}
-                blurMode={blurMode}
-                speechStatus={speech.status}
-              />
-            )}
-          </div>
-
-          {showVoicePicker && (
-            <VoicePicker
-              voices={voices.voices}
-              filteredVoices={voices.filteredVoices}
+          {showPdfViewer && pdf.pdfData && pdf.getPdfDoc() && (
+            <PdfViewer
+              pdfDoc={pdf.getPdfDoc()!}
+              pdfData={pdf.pdfData}
+              currentWordIndex={speech.currentIndex}
+              highlightMode={speech.highlightMode}
+              isPlaying={speech.isPlaying}
               selectedVoice={voices.selectedVoice}
-              isLoading={voices.isLoading}
-              noVoicesAvailable={voices.noVoicesAvailable}
-              searchQuery={voices.searchQuery}
-              genderFilter={voices.genderFilter}
-              onSearchChange={voices.setSearchQuery}
-              onGenderChange={voices.setGenderFilter}
-              onSelectVoice={handleVoiceSelect}
-              onPreviewVoice={voices.previewVoice}
-              isOpen={showVoicePicker}
-              onClose={() => setShowVoicePicker(false)}
-              isMobile={isMobile}
+              onWordClick={handleWordClick}
+              onWordDoubleClick={handleWordDoubleClick}
+              onWordRightClick={handleWordRightClick}
+              onPageChange={setCurrentPage}
+              currentPage={currentPage}
+              scale={scale}
+              setScale={setScale}
+              zoomMode={zoomMode}
+              setZoomMode={setZoomMode}
+              jumpToPageFnRef={jumpToPageFnRef}
+              calculateFitWidthFnRef={calculateFitWidthFnRef}
+              blurMode={blurMode}
+              speechStatus={speech.status}
             />
           )}
         </div>
 
-        {/* ---- Footer ---- */}
-        <Footer isMobile={isMobile} />
+        {/* ---- Bottom Playback Dock (only when PDF loaded) ---- */}
+        {showPdfViewer && pdf.pdfData && (
+          <PlaybackDock
+            status={speech.status}
+            currentIndex={speech.currentIndex}
+            rate={speech.rate}
+            highlightMode={speech.highlightMode}
+            pdfData={pdf.pdfData}
+            selectedVoice={voices.selectedVoice}
+            onTogglePauseResume={speech.togglePauseResume}
+            onStop={speech.stop}
+            onRateChange={handleRateChange}
+            onHighlightModeChange={handleHighlightModeChange}
+            onToggleVoicePicker={() => setShowVoicePicker((prev) => !prev)}
+            blurMode={blurMode}
+            onBlurModeToggle={handleBlurModeToggle}
+            onOpenDrawer={() => setIsDrawerOpen(true)}
+          />
+        )}
+
+        {/* ---- Controls Drawer (right panel / bottom sheet) ---- */}
+        {showPdfViewer && pdf.pdfData && (
+          <ControlsPanel
+            status={speech.status}
+            currentIndex={speech.currentIndex}
+            rate={speech.rate}
+            highlightMode={speech.highlightMode}
+            pdfData={pdf.pdfData}
+            currentPage={currentPage}
+            selectedVoice={voices.selectedVoice}
+            onTogglePauseResume={speech.togglePauseResume}
+            onStop={speech.stop}
+            onRateChange={handleRateChange}
+            onHighlightModeChange={handleHighlightModeChange}
+            onToggleVoicePicker={() => setShowVoicePicker((prev) => !prev)}
+            isVoicePickerOpen={showVoicePicker}
+            blurMode={blurMode}
+            onBlurModeToggle={handleBlurModeToggle}
+            isOpen={isDrawerOpen}
+            onClose={() => setIsDrawerOpen(false)}
+          />
+        )}
+
+        {/* ---- Voice Picker Overlay ---- */}
+        {showVoicePicker && (
+          <VoicePicker
+            voices={voices.voices}
+            filteredVoices={voices.filteredVoices}
+            selectedVoice={voices.selectedVoice}
+            isLoading={voices.isLoading}
+            noVoicesAvailable={voices.noVoicesAvailable}
+            searchQuery={voices.searchQuery}
+            genderFilter={voices.genderFilter}
+            onSearchChange={voices.setSearchQuery}
+            onGenderChange={voices.setGenderFilter}
+            onSelectVoice={handleVoiceSelect}
+            onPreviewVoice={voices.previewVoice}
+            isOpen={showVoicePicker}
+            onClose={() => setShowVoicePicker(false)}
+            isMobile={isMobile}
+          />
+        )}
 
         {/* ---- Modals & Overlays ---- */}
         <WelcomeModal isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
         <KeyboardShortcuts isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
         <DefinitionPopup state={dictionary.state} isOpen={dictionary.isOpen} onClose={dictionary.close} isMobile={isMobile} />
         <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
-        <FloatingActionButton
-          status={speech.status}
-          onTogglePauseResume={speech.togglePauseResume}
-          onStop={speech.stop}
-          visible={isMobile}
-        />
       </div>
     </ErrorBoundary>
   );

@@ -108,7 +108,7 @@ export default function Waveform({
             width: `${config.barWidth}px`,
             height: `${height}px`,
             borderRadius: `${config.barWidth}px`,
-            background: 'linear-gradient(to top, var(--accent-start), var(--accent-end))',
+            background: 'var(--accent)',
             transformOrigin: 'bottom',
             animation: `waveform-bounce 0.8s ${BAR_DELAYS[i]}s ease-in-out infinite`,
           }}

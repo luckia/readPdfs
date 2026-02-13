@@ -13,6 +13,7 @@ interface ErrorBoundaryState {
   hasError: boolean;
   errorMessage: string;
   errorStack: string;
+  showDetails: boolean;
 }
 
 export default class ErrorBoundary extends Component<
@@ -25,6 +26,7 @@ export default class ErrorBoundary extends Component<
       hasError: false,
       errorMessage: '',
       errorStack: '',
+      showDetails: false,
     };
   }
 
@@ -51,6 +53,7 @@ export default class ErrorBoundary extends Component<
       hasError: false,
       errorMessage: '',
       errorStack: '',
+      showDetails: false,
     });
   };
 
@@ -95,7 +98,7 @@ export default class ErrorBoundary extends Component<
             ⚠️
           </div>
 
-          <h1
+          <h2
             style={{
               fontSize: '24px',
               fontWeight: 700,
@@ -104,7 +107,7 @@ export default class ErrorBoundary extends Component<
             }}
           >
             Something went wrong
-          </h1>
+          </h2>
 
           <p
             style={{
@@ -120,41 +123,50 @@ export default class ErrorBoundary extends Component<
           </p>
 
           {this.state.errorMessage && (
-            <div
-              style={{
-                textAlign: 'left',
-                marginBottom: '24px',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-              }}
-            >
-              <p
+            <div style={{ marginBottom: '24px' }}>
+              <button
+                onClick={() => this.setState(prev => ({ ...prev, showDetails: !prev.showDetails }))}
                 style={{
-                  fontSize: '13px',
-                  fontWeight: 600,
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'var(--bg-tertiary)',
                   color: 'var(--text-secondary)',
-                  marginBottom: '8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
                 }}
               >
-                Technical Details:
-              </p>
-              <pre
-                style={{
-                  fontSize: '11px',
-                  color: '#ef4444',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                  lineHeight: '1.5',
-                  fontFamily: 'monospace',
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                  margin: 0,
-                }}
-              >
-                {this.state.errorMessage}
-              </pre>
+                {this.state.showDetails ? 'Hide' : 'Show'} Technical Details
+              </button>
+              {this.state.showDetails && (
+                <div
+                  style={{
+                    textAlign: 'left',
+                    marginTop: '12px',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    backgroundColor: 'var(--bg-tertiary)',
+                    border: '1px solid var(--border-color)',
+                  }}
+                >
+                  <pre
+                    style={{
+                      fontSize: '11px',
+                      color: '#ef4444',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      lineHeight: '1.5',
+                      fontFamily: 'monospace',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      margin: 0,
+                    }}
+                  >
+                    {this.state.errorMessage}
+                  </pre>
+                </div>
+              )}
             </div>
           )}
 
@@ -207,15 +219,6 @@ export default class ErrorBoundary extends Component<
             }}
           >
             🎧 FREE PDF TTS READER by Analyst Sandeep
-          </p>
-          <p
-            style={{
-              fontSize: '11px',
-              color: 'var(--text-muted)',
-              marginTop: '4px',
-            }}
-          >
-            📧 itbusinessanalystsandeep@gmail.com
           </p>
         </div>
       </div>

@@ -29,7 +29,7 @@ import {
 import type { SpokenTextMapping } from '../utils/textProcessing';
 
 /** How many words per speech chunk (avoids Chrome 15-sec cutoff) */
-const CHUNK_SIZE = 150;
+const CHUNK_SIZE = 200;
 
 /** How often to check if speech is still alive (ms) */
 const WATCHDOG_INTERVAL = 5000;
@@ -143,7 +143,7 @@ export function useSpeech() {
    * Speak a single sub-chunk (a portion of text between pauses).
    * Returns a promise that resolves when done speaking + pause is done.
    */
- // REPLACE WITH (just remove fullMapping):
+  // REPLACE WITH (just remove fullMapping):
   const speakSubChunk = useCallback(
     (
       subChunk: SpeechSubChunk,
@@ -155,6 +155,23 @@ export function useSpeech() {
         if (subChunk.text.trim().length === 0) {
           resolve('ended');
           return;
+        }
+
+        // Pre-calculate word offsets for robust O(1) mapping during playback
+        // This prevents sync drift caused by real-time string splitting
+        const spokenTokens = subChunk.text.split(' ');
+        const wordRanges: { start: number; end: number; wordIndex: number }[] = [];
+        let charOffset = 0;
+        const limit = Math.min(spokenTokens.length, subChunk.wordIndices.length);
+
+        for (let i = 0; i < limit; i++) {
+          const tokenLen = spokenTokens[i].length;
+          wordRanges.push({
+            start: charOffset,
+            end: charOffset + tokenLen, // Range is [start, end)
+            wordIndex: subChunk.wordIndices[i]
+          });
+          charOffset += tokenLen + 1; // +1 for the space
         }
 
         // Store resolve so pause/stop can use it
@@ -174,30 +191,35 @@ export function useSpeech() {
           if (event.name !== 'word') return;
           if (statusRef.current !== 'playing') return;
 
-          boundaryWorkedRef.current = true;
-
-          const charIndex = event.charIndex;
-
-          // Map charIndex back to global word index
-          // We need to find which word in this sub-chunk's wordIndices
-          // corresponds to this character position
-          let cumulativeChars = 0;
-          let matchedIndex = subChunk.wordIndices[0];
-
-          for (let i = 0; i < subChunk.wordIndices.length; i++) {
-            const globalIdx = subChunk.wordIndices[i];
-            const word = allWordsRef.current[globalIdx];
-            if (!word) continue;
-
-            const wordLen = word.spokenText.length;
-            if (charIndex >= cumulativeChars && charIndex < cumulativeChars + wordLen + 1) {
-              matchedIndex = globalIdx;
-              break;
-            }
-            cumulativeChars += wordLen + 1; // +1 for space
+          // If we receive a boundary event, the browser supports it.
+          // Kill any fallback timer immediately to avoid "fighting" updates.
+          if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
           }
 
-          updateCurrentIndex(matchedIndex);
+          boundaryWorkedRef.current = true;
+          const charIndex = event.charIndex;
+
+          // Find the word that covers this charIndex
+          // Fuzzy lookup: if exact match fails, find the closest one
+          let match: typeof wordRanges[0] | undefined;
+
+          if (wordRanges.length > 0) {
+            match = wordRanges.find(r => charIndex >= r.start && charIndex < r.end + 2); // +2 tolerance
+
+            if (!match) {
+              // Fallback: Find the closest range
+              // This handles cases where browser charIndex drifts significantly
+              match = wordRanges.reduce((prev, curr) => {
+                return (Math.abs(curr.start - charIndex) < Math.abs(prev.start - charIndex) ? curr : prev);
+              });
+            }
+          }
+
+          if (match) {
+            updateCurrentIndex(match.wordIndex);
+          }
         };
 
         // ---- onstart ----
@@ -207,11 +229,13 @@ export function useSpeech() {
           }
 
           // Check if onboundary works after a moment
+          // Scale timeout by rate: slower speech needs longer wait
+          const waitTime = Math.max(500, 500 / rateRef.current);
           setTimeout(() => {
             if (!boundaryWorkedRef.current && statusRef.current === 'playing') {
               startTimerFallback(subChunk.wordIndices, 1);
             }
-          }, 400);
+          }, waitTime);
         };
 
         // ---- onend: sub-chunk finished speaking ----
@@ -322,7 +346,7 @@ export function useSpeech() {
 
         currentSubChunkRef.current = i;
         const subChunk = analysis.subChunks[i];
-const result = await speakSubChunk(subChunk, voice);
+        const result = await speakSubChunk(subChunk, voice);
 
         if (result === 'cancelled') return 'cancelled';
         if (result === 'error') continue; // Skip bad sub-chunks
@@ -377,12 +401,16 @@ const result = await speakSubChunk(subChunk, voice);
   // ---- Public API ----
 
   const playFromWord = useCallback(
-    (wordIndex: number, allWords: PdfWord[], voice: VoiceInfo | null) => {
+    async (wordIndex: number, allWords: PdfWord[], voice: VoiceInfo | null) => {
       if (!voice) return;
       if (allWords.length === 0) return;
 
       const synth = window.speechSynthesis;
       synth.cancel();
+
+      // Brief delay after cancel() for browser compatibility (Firefox/Safari)
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       clearAllTimers();
       shouldContinueRef.current = false;
 
@@ -394,7 +422,12 @@ const result = await speakSubChunk(subChunk, voice);
       updateStatus('playing');
       updateCurrentIndex(speakableIndex);
 
+      // Reset shouldContinue AFTER cancelling previous loops,
+      // so the new reading loop can start
+      shouldContinueRef.current = true;
+
       setTimeout(() => {
+        if (!shouldContinueRef.current) return;
         readingLoop(speakableIndex, allWords, voice);
       }, 100);
     },

@@ -1,7 +1,7 @@
 /* ========================================
    FREE PDF TTS READER — Welcome Modal
    by Analyst Sandeep
-   iPhone Glassmorphism Edition
+   Editorial Minimal Reader
    ======================================== */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -33,31 +33,23 @@ export function shouldShowWelcome(): boolean {
   }
 }
 
-/* ── Glass design tokens (used inline, theme-aware via CSS vars) ── */
-const glass = {
-  // The main modal panel — single source of blur
+/* Solid surface tokens (no glassmorphism) */
+const surface = {
   panel: {
-    background: 'var(--glass-bg)',
-    backdropFilter: 'blur(60px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(60px) saturate(180%)',
-    border: '1px solid var(--glass-border)',
-    boxShadow: '0 24px 80px var(--shadow-color), 0 0 1px var(--glass-border)',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--border-color)',
+    boxShadow: 'var(--shadow-lg)',
   } as React.CSSProperties,
-
-  // Sections — subtle layered cards, NO extra blur (parent already blurs)
   sectionClosed: {
     background: 'var(--bg-tertiary)',
     border: '1px solid var(--border-subtle)',
     boxShadow: 'none',
   } as React.CSSProperties,
-
   sectionOpen: {
     background: 'var(--accent-soft)',
     border: '1px solid var(--accent-medium)',
-    boxShadow: '0 2px 12px var(--accent-soft)',
+    boxShadow: 'none',
   } as React.CSSProperties,
-
-  // Header/Footer — slightly tinted, no extra blur
   chrome: {
     background: 'var(--bg-tertiary)',
     borderColor: 'var(--border-subtle)',
@@ -116,7 +108,7 @@ function Section({
   return (
     <div
       style={{
-        ...(isOpen ? glass.sectionOpen : glass.sectionClosed),
+        ...(isOpen ? surface.sectionOpen : surface.sectionClosed),
         borderRadius: '14px',
         overflow: 'hidden',
         marginBottom: '8px',
@@ -151,7 +143,7 @@ function Section({
             alignItems: 'center',
             justifyContent: 'center',
             background: isOpen
-              ? 'linear-gradient(135deg, var(--accent-start), var(--accent-end))'
+              ? 'var(--accent)'
               : 'var(--bg-sunken)',
             color: isOpen ? 'white' : 'var(--text-secondary)',
             transition: 'all 0.3s ease',
@@ -165,7 +157,7 @@ function Section({
           style={{
             flex: 1,
             fontWeight: 600,
-            color: isOpen ? 'var(--accent-start)' : 'var(--text-primary)',
+            color: isOpen ? 'var(--accent)' : 'var(--text-primary)',
             transition: 'color 0.3s ease',
           }}
         >
@@ -173,7 +165,7 @@ function Section({
         </span>
         <span
           style={{
-            color: isOpen ? 'var(--accent-start)' : 'var(--text-muted)',
+            color: isOpen ? 'var(--accent)' : 'var(--text-muted)',
             transition: 'transform 0.3s ease, color 0.3s ease',
             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
             display: 'flex',
@@ -231,7 +223,7 @@ function Step({
           justifyContent: 'center',
           fontSize: '12px',
           fontWeight: 700,
-          background: 'linear-gradient(135deg, var(--accent-start), var(--accent-end))',
+          background: 'var(--accent)',
           color: 'white',
         }}
       >
@@ -323,9 +315,7 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
         alignItems: isMobileView ? 'flex-end' : 'center',
         justifyContent: 'center',
         padding: isMobileView ? '0' : '16px',
-        backgroundColor: 'rgba(0, 0, 0, 0.35)',
-        backdropFilter: 'blur(24px) saturate(150%)',
-        WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
         animation: 'overlay-in 0.25s ease forwards',
       }}
       onClick={(e) => {
@@ -342,7 +332,7 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          ...glass.panel,
+          ...surface.panel,
           animation: isMobileView
             ? 'slide-in-up-modal 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
             : 'modal-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards',
@@ -360,8 +350,8 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
             position: 'relative',
             padding: isMobileView ? '20px 16px 14px 16px' : '28px 24px 18px 24px',
             textAlign: 'center',
-            borderBottom: `1px solid ${glass.chrome.borderColor}`,
-            background: glass.chrome.background,
+            borderBottom: `1px solid ${surface.chrome.borderColor}`,
+            background: surface.chrome.background,
             flexShrink: 0,
           }}
         >
@@ -390,7 +380,7 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobileView ? '8px' : '10px', marginBottom: '10px' }}>
             <span style={{ fontSize: isMobileView ? '24px' : '30px' }}>🎧</span>
-            <h1
+            <h2
               className="gradient-text"
               style={{
                 fontSize: isMobileView ? '18px' : '22px',
@@ -400,7 +390,7 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
               }}
             >
               FREE PDF TTS READER
-            </h1>
+            </h2>
           </div>
           <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
             by Analyst Sandeep
@@ -544,8 +534,8 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
         <div
           style={{
             padding: '20px 24px',
-            borderTop: `1px solid ${glass.chrome.borderColor}`,
-            background: glass.chrome.background,
+            borderTop: `1px solid ${surface.chrome.borderColor}`,
+            background: surface.chrome.background,
             flexShrink: 0,
           }}
         >
@@ -586,7 +576,7 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           </button>
 
           <p style={{ textAlign: 'center', fontSize: '12px', marginTop: '12px', color: 'var(--text-muted)' }}>
-            Developed by Analyst Sandeep · 📧 itbusinessanalystsandeep@gmail.com
+            Developed by Analyst Sandeep
           </p>
         </div>
       </div>

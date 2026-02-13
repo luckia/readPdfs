@@ -1,6 +1,6 @@
 /* ========================================
    FREE PDF TTS READER — App Component Styles
-   Redesign: Warm Premium Reader
+   Redesign: Editorial Minimal Reader
    by Analyst Sandeep
    ======================================== */
 
@@ -16,7 +16,7 @@
 .card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   padding: 0;
 }
@@ -24,14 +24,14 @@
 .card-muted {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 /* ---------- Secondary Button ---------- */
 .btn-secondary {
   height: 40px;
   padding: 0 14px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -49,8 +49,8 @@
 
 .btn-secondary:hover {
   background: var(--bg-tertiary);
-  border-color: var(--accent-start);
-  color: var(--accent-start);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ---------- Speed Chips ---------- */
@@ -78,10 +78,9 @@
 }
 
 .speed-chip.is-active {
-  background: var(--accent-soft);
-  border-color: var(--accent-start);
-  color: var(--accent-start);
-  box-shadow: 0 0 0 1px var(--accent-soft);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
 }
 
 /* ---------- Inputs ---------- */
@@ -90,7 +89,7 @@ input[type="number"],
 input[type="text"],
 select {
   height: 40px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
   background: var(--bg-tertiary);
   color: var(--text-primary);
@@ -104,7 +103,7 @@ select {
 input[type="number"]:focus,
 input[type="text"]:focus,
 select:focus {
-  border-color: var(--accent-start);
+  border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--focus-ring);
   background: var(--bg-secondary);
   outline: none;
@@ -120,14 +119,11 @@ select:focus {
   margin-bottom: 8px;
 }
 
-/* ---------- Word/Sentence Highlight ---------- */
-/* Defined in index.css — no overrides needed here */
-
 /* ---------- Modal Surfaces ---------- */
 .modal-surface {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
 }
 
@@ -182,7 +178,7 @@ select:focus {
 
 .badge-accent {
   background: var(--accent-soft);
-  color: var(--accent-start);
+  color: var(--accent);
   border-color: var(--accent-medium);
 }
 
@@ -192,8 +188,15 @@ select:focus {
 }
 
 @keyframes page-fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---------- Hover Card Effect ---------- */
@@ -206,13 +209,13 @@ select:focus {
   box-shadow: var(--shadow-md);
 }
 
-/* ---------- Accordion Row (for Welcome Modal) ---------- */
+/* ---------- Accordion Row ---------- */
 .accordion-row {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
   background: var(--bg-secondary);
   cursor: pointer;
@@ -221,7 +224,7 @@ select:focus {
 
 .accordion-row:hover {
   background: var(--bg-tertiary);
-  border-color: var(--accent-start);
+  border-color: var(--accent);
 }
 
 /* ---------- Responsive ---------- */

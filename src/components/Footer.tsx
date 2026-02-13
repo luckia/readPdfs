@@ -5,7 +5,6 @@
    MOBILE: Simplified single-line
    ======================================== */
 
-import { Mail } from 'lucide-react';
 
 interface FooterProps {
   isMobile?: boolean;
@@ -76,24 +75,6 @@ export default function Footer({ isMobile = false }: FooterProps) {
           Built by{' '}
           <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Analyst Sandeep</span>
         </span>
-
-        <span style={{ width: '1px', height: '12px', backgroundColor: 'var(--border-color)' }} />
-
-        <a
-          href="mailto:itbusinessanalystsandeep@gmail.com"
-          style={{
-            fontSize: '11px',
-            color: 'var(--accent-start)',
-            textDecoration: 'none',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '3px',
-          }}
-        >
-          <Mail size={10} />
-          itbusinessanalystsandeep@gmail.com
-        </a>
 
         <span style={{ width: '1px', height: '12px', backgroundColor: 'var(--border-color)' }} />
 

@@ -272,7 +272,7 @@ export default function VoicePicker({
                     : 'var(--border-color)',
                 backgroundColor:
                   genderFilter === option.value
-                    ? 'var(--highlight-bg)'
+                    ? 'var(--accent-soft)'
                     : 'var(--bg-primary)',
                 color:
                   genderFilter === option.value
@@ -308,6 +308,8 @@ export default function VoicePicker({
 
       {/* ---- Voice List ---- */}
       <div
+        role="listbox"
+        aria-label="Available voices"
         style={{
           flex: 1,
           overflowY: 'auto',
@@ -387,7 +389,16 @@ export default function VoicePicker({
           return (
             <div
               key={voiceInfo.name}
+              role="option"
+              aria-selected={isSelected}
+              tabIndex={0}
               onClick={() => onSelectVoice(voiceInfo)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectVoice(voiceInfo);
+                }
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -397,8 +408,8 @@ export default function VoicePicker({
                 marginBottom: '4px',
                 cursor: 'pointer',
                 border: '1px solid',
-                borderColor: isSelected ? 'var(--accent-start)' : 'transparent',
-                backgroundColor: isSelected ? 'var(--highlight-bg)' : 'transparent',
+                borderColor: isSelected ? 'var(--accent)' : 'transparent',
+                backgroundColor: isSelected ? 'var(--accent-soft)' : 'transparent',
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {

@@ -194,9 +194,9 @@ export function usePdfDocument() {
           pages.push(pageData);
           globalWordOffset += pageData.words.length;
 
-          // Small delay to prevent UI freezing on large PDFs
-          if (i % 10 === 0 && i > 0) {
-            await new Promise((resolve) => setTimeout(resolve, 10));
+          // Yield to main thread every page to keep UI responsive
+          if (i % 1 === 0) {
+            await new Promise((resolve) => requestAnimationFrame(resolve));
           }
         }
 
