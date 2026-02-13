@@ -345,8 +345,12 @@ export default function PlaybackDock({
                         </button>
                     </div>
 
-                    {/* Dictionary Info */}
-                    <div className="tooltip-wrapper" data-tooltip="Right-click a word for meaning.">
+                    {/* Dictionary Info — Hide on mobile */}
+                    <div
+                        className="tooltip-wrapper"
+                        data-tooltip="Right-click a word for meaning."
+                        style={{ display: window.innerWidth < 480 ? 'none' : 'block' }}
+                    >
                         <div
                             style={{
                                 display: 'flex',

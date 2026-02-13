@@ -7,6 +7,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { Upload, FileText, AlertCircle, Lock, Wifi, Zap } from 'lucide-react';
+import item from '../assets/logo.png';
 import SpotlightContainer from './SpotlightContainer';
 
 interface PdfUploaderProps {
@@ -112,7 +113,17 @@ export default function PdfUploader({
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: isMobile ? '24px 16px' : '48px' }}>
         <div style={{ width: '100%', maxWidth: '420px', textAlign: 'center' }}>
-          <div style={{ marginBottom: '24px' }}><span style={{ fontSize: isMobile ? '36px' : '48px' }}>🎧</span></div>
+          <div style={{ marginBottom: '24px' }}>
+            <img
+              src={item}
+              alt="Loading"
+              style={{
+                height: isMobile ? '64px' : '80px',
+                width: 'auto',
+                opacity: 0.9
+              }}
+            />
+          </div>
           <h2 style={{ fontSize: isMobile ? '17px' : '20px', fontWeight: 700, color: 'var(--accent)', marginBottom: '20px', letterSpacing: '-0.02em' }}>
             Loading PDF…
           </h2>
