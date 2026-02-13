@@ -95,7 +95,7 @@ export default function VoicePicker({
     ? {
       position: 'fixed',
       inset: 0,
-      zIndex: 60, // Higher than ControlsPanel (50)
+      zIndex: 70, // Higher than ControlsPanel (50)
       display: 'flex',
       flexDirection: 'column',
       backgroundColor: 'var(--bg-secondary)',
@@ -107,7 +107,7 @@ export default function VoicePicker({
       right: 0,
       bottom: 0,
       width: '340px',
-      zIndex: 30,
+      zIndex: 70, // Higher than ControlsPanel (50)
       display: 'flex',
       flexDirection: 'column',
       backgroundColor: 'var(--bg-secondary)',

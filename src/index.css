@@ -763,6 +763,12 @@ input[type="number"] {
 }
 
 /* ---------- Responsive ---------- */
+@media (max-width: 1280px) {
+  .mobile-hide-1280 {
+    display: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   .btn-icon {
     width: 36px;

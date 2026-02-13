@@ -656,7 +656,6 @@ export default function App() {
             blurMode={blurMode}
             onBlurModeToggle={handleBlurModeToggle}
             onOpenDrawer={() => setIsDrawerOpen(true)}
-            isMobile={isMobile}
           />
         )}
 

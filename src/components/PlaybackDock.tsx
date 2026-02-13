@@ -25,7 +25,6 @@ interface PlaybackDockProps {
     blurMode: boolean;
     onBlurModeToggle: () => void;
     onOpenDrawer: () => void;
-    isMobile: boolean;
 }
 
 const SPEED_PRESETS = [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3];
@@ -45,7 +44,6 @@ export default function PlaybackDock({
     blurMode,
     onBlurModeToggle,
     onOpenDrawer,
-    isMobile,
 }: PlaybackDockProps) {
     const isPlaying = status === 'playing';
     const isPaused = status === 'paused';
@@ -326,9 +324,8 @@ export default function PlaybackDock({
 
                     {/* Focus mode toggle — Hide on mobile/tablet */}
                     <div
-                        className="tooltip-wrapper"
+                        className="tooltip-wrapper mobile-hide-1280"
                         data-tooltip={blurMode ? 'Focus: On' : 'Focus: Off'}
-                        style={{ display: isMobile ? 'none' : 'block' }}
                     >
                         <button
                             onClick={onBlurModeToggle}
