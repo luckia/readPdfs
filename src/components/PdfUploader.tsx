@@ -289,6 +289,7 @@ export default function PdfUploader({
               textAlign: 'center',
               transform: isDragging ? 'scale(1.01)' : 'scale(1)',
               animation: 'glass-enter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+              WebkitTapHighlightColor: 'transparent',
             }}
           >
             <div
