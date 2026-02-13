@@ -90,6 +90,7 @@ export default function ControlsPanel({
         className={`glass-panel`}
         style={{
           position: 'fixed',
+          backgroundColor: 'var(--bg-elevated)', // Fallback if glass fails
           top: isMobile ? 0 : HEADER_HEIGHT,
           right: 0,
           bottom: isMobile ? 0 : FOOTER_HEIGHT,

@@ -67,7 +67,7 @@ export default function App() {
   const calculateFitWidthFnRef = useRef<() => number>(() => 1.0);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    const checkMobile = () => setIsMobile(window.innerWidth < 1280);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
