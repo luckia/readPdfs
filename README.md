@@ -1,115 +1,154 @@
 <div align="center">
 
 # 🎧 PDF Text-to-Speech Reader
+### The Privacy-First, Zero-Cost PDF Reader
 
-### Listen to Any PDF — Free, Private, and Accessible
+**Transform any document into natural, human-like speech. Runs 100% locally in your browser.**
+**No uploads. No sign-ups. No data collection. Just code.**
 
-**The only PDF reader that reads your documents aloud with real-time word-by-word highlighting.**
-**Runs 100% in your browser. No uploads. No accounts. No data collection.**
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![Made with React](https://img.shields.io/badge/React-19-61dafb.svg?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF.svg?style=flat-square&logo=vite&logoColor=white)](https://vite.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4.svg?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 
-[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Made with React](https://img.shields.io/badge/Made%20with-React-61dafb.svg)](https://reactjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-
-[Features](#-features) · [Quick Start](#-quick-start) · [Screenshots](#-screenshots) · [FAQ](#-faq) · [Contributing](#-contributing)
+[Live Demo](#) · [Report Bug](https://github.com/analystsandeep/pdf-text-to-speech-reader/issues) · [Request Feature](https://github.com/analystsandeep/pdf-text-to-speech-reader/issues)
 
 </div>
 
 ---
 
-## 💡 Why PDF TTS Reader?
+## 💡 Why This Exists
 
-Most PDF readers don't have text-to-speech. The ones that do require cloud uploads, subscriptions, or accounts. This tool does **none of that.**
+Most "free" PDF readers are data traps. They require account creation, upload your private documents to cloud servers, or lock essential accessibility features behind paywalls.
 
-| Feature | PDF TTS Reader | Adobe Acrobat | Online TTS Tools |
-|---------|:-------------:|:-------------:|:----------------:|
-| Free forever | ✅ | ❌ (paid) | ⚠️ (limited) |
-| No file uploads | ✅ | ✅ | ❌ |
-| No account needed | ✅ | ❌ | ❌ |
-| Word-by-word highlight | ✅ | ❌ | ❌ |
-| 50+ voice options | ✅ | ❌ | ⚠️ |
-| Works offline | ✅ | ✅ | ❌ |
-| Open source | ✅ | ❌ | ❌ |
+**PDF TTS Reader** is different. It is an **offline-first, privacy-guaranteed application** built for students, researchers, and developers who need to digest complex documents efficiently without compromising their data.
 
-**Your PDF never leaves your computer.** Period.
+### Core Value Proposition
 
----
-
-## 🎯 Who Is This For?
-
-- 📚 **Students** — Listen to textbooks and papers while studying or multitasking
-- 🔬 **Researchers** — Process long academic papers by ear
-- ♿ **People with reading difficulties** — Dyslexia, visual impairments, or reading fatigue
-- 💼 **Professionals** — Listen to reports and documents hands-free
-- 🌍 **Language learners** — Hear correct pronunciation while reading
-- 👨‍💻 **Developers** — Read documentation without eye strain
+| Feature | PDF TTS Reader | Standard PDF Readers |
+| :--- | :---: | :---: |
+| **Privacy** | 🔒 **100% Local Processing** | ☁️ Cloud Uploads (Risk) |
+| **Cost** | 💸 **Free Forever (Open Source)** | 💰 Subscriptions / Paid |
+| **Accessibility** | 🧠 **Dyslexia-Friendly / Focus Mode** | ❌ Basic Zoom Only |
+| **Voices** | 🗣️ **50+ System Voices (Uncapped)** | ⚠️ Limited / Premium Only |
+| **Tracking** | 🛡️ **Zero Analytics / Cookies** | 📈 User Tracking |
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-### 🔊 Text-to-Speech Engine
-- **Word-by-word reading** with precise highlighting
-- **Human-sounding pauses** — natural breaks at commas, periods, paragraphs, and headings
-- **Sentence highlighting mode** — highlights the full sentence being read
-- **50+ voices** — choose from all voices available on your system
-- **Speed control** — 0.5× (slow) to 3× (fast) with instant switching
-- **Voice preview** — listen to any voice before selecting it
+### 🎧 Immersive Audio Experience
+*   **Smart Text-to-Speech (TTS)**: Utilizes the Web Speech API to access all native OS voices (Google, Microsoft, Apple) without API keys.
+*   **Real-Time Synchronization**: Highlights words exactly as they are spoken, aiding comprehension and retention.
+*   **Variable Speed Playback**: Adjustable granular speed control from **0.5x (Study Mode)** to **3.0x (Skim Mode)**.
+*   **Sentence Mode**: Toggle between word-level highlighting for precision or sentence-level for flow.
 
-### 📄 PDF Viewer
-- **Drag-and-drop upload** — or click to browse
-- **Click any word to start** — reading begins from exactly where you click
-- **Zoom controls** — keyboard, buttons, scroll wheel, and fit-to-width
-- **Page navigation** — jump to any page instantly
-- **Virtualized rendering** — handles 300+ page PDFs without lag
-- **Auto-scroll** — follows the current word as you read
+### 👁️ Visual Intelligence & Focus
+*   **Spotlight Cursor**: A premium, "Onlook-style" glow effect that tracks your mouse, reducing eye strain and improving reading focus.
+*   **Focus Mode**: Instantly blurs the surrounding UI, dimming distractions so you can focus solely on the text.
+*   **Smart Theming**: seamless toggle between **Light**, **Dark** (OLED optimized), and **Sepia** (Paper-like) modes to suit any lighting condition.
 
-### 🔍 Smart Features
-- **Dictionary lookup** — right-click any word for instant definitions
-- **Heading detection** — automatically emphasizes titles and headings
-- **Punctuation-aware pauses** — commas get short pauses, periods get longer ones
-- **Speed-scaled pauses** — pauses adjust automatically at different speeds
+### ⚡ Performance & Engineering
+*   **Custom Virtualization**: Why load 500 pages when you only read one? A custom virtualization engine renders only visible pages, ensuring 60FPS scrolling even on large textbooks.
+*   **Responsive Design**: A unified UI that adapts from desktop monitors to mobile screens, featuring a touch-friendly drawer and controls.
+*   **Anchor Scrolling**: Intelligent scroll position maintenance during zoom operations—no more losing your place when resizing.
 
-### 🎨 User Experience
-- **Three themes** — Light, Dark, and Sepia
-- **Keyboard shortcuts** — Space (pause/resume), Escape (stop), ? (help)
-- **Toast notifications** — instant feedback for all actions
-- **Welcome guide** — interactive tutorial for first-time users
-- **"Go to Current Word"** — jump back to your reading position after scrolling
+---
 
-### 🔒 Privacy & Security
-- **100% local** — your PDF never leaves your computer
-- **No uploads** — zero network requests (except optional dictionary)
-- **No accounts** — no login, signup, or registration
-- **No tracking** — no analytics, cookies, or fingerprinting
-- **No data storage** — only localStorage for your theme preference
-- **Open source** — inspect every line of code yourself
+## 🛠️ Technical Stack
+
+Built with the bleeding edge of modern web development:
+
+*   **Runtime**: [React 19](https://react.dev) (Leveraging new hooks and concurrent features)
+*   **Build Tool**: [Vite 6](https://vitejs.dev) (Instant HMR and optimized production builds)
+*   **Language**: [TypeScript 5](https://www.typescriptlang.org) (Strict type safety for reliability)
+*   **Styling**: [Tailwind CSS v4](https://tailwindcss.com) (Utility-first, zero-runtime CSS)
+*   **PDF Core**: [PDF.js](https://mozilla.github.io/pdf.js/) (Standard-compliant PDF parsing)
+*   **Icons**: [Lucide React](https://lucide.dev) (Clean, consistent iconography)
 
 ---
 
 ## 🚀 Quick Start
 
+Get up and running in less than 2 minutes.
+
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (version 18 or higher)
-- A modern browser (Chrome or Edge recommended for best voice selection)
+
+*   **Node.js**: v18 or higher recommended.
+*   **Browser**: Chrome, Edge, Safari, or Firefox (Chromium browsers recommended for best voice variety).
 
 ### Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/analystsandeep/pdf-text-to-speech-reader.git
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/analystsandeep/pdf-text-to-speech-reader.git
+    cd pdf-text-to-speech-reader
+    ```
 
-# Navigate to project folder
-cd pdf-text-to-speech-reader
+2.  **Install dependencies**
+    ```bash
+    npm install
+    # or
+    pnpm install
+    # or
+    yarn install
+    ```
 
-# Install dependencies
-npm install
+3.  **Start the development server**
+    ```bash
+    npm run dev
+    ```
 
-# Start the app
-<<<<<<< HEAD
-npm run dev
-=======
-npm run dev
->>>>>>> ecc14c2591baff4b9aa0ad5fcbd1bb5fd626daaa
+4.  Open `http://localhost:5173` to view the app.
+
+---
+
+## 🎮 Usage Guide
+
+### Keyboard Shortcuts
+Power users can navigate without touching the mouse:
+
+| Key | Action |
+| :--- | :--- |
+| <kbd>Space</kbd> | Play / Pause reading |
+| <kbd>Esc</kbd> | Stop reading / Close active modal |
+| <kbd>/</kbd> | Search / Open help |
+| <kbd>?</kbd> | Toggle Keyboard Shortcuts list |
+| <kbd>Ctrl</kbd> + <kbd>+</kbd> | Zoom In |
+| <kbd>Ctrl</kbd> + <kbd>-</kbd> | Zoom Out |
+| <kbd>Ctrl</kbd> + <kbd>0</kbd> | Reset Zoom to Fit Width |
+
+### Gestures & Mouse
+*   **Click Word**: Start reading from that specific word.
+*   **Double Click**: Pause playback.
+*   **Right Click Word**: Define word (Dictionary lookup).
+*   **Scroll Wheel**: Navigate document.
+*   **Ctrl + Scroll**: Zoom in/out.
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+<div align="center">
+
+**Developed for the Open Source Community**
+[Analyst Sandeep](https://github.com/analystsandeep)
+
+</div>
