@@ -20,6 +20,21 @@ import {
   isSpeakable,
 } from '../utils/textProcessing';
 
+
+type OcrWord = {
+  text?: string;
+  bbox?: { x0: number; y0: number; x1: number; y1: number };
+};
+
+type OcrWorker = {
+  recognize: (image: HTMLCanvasElement) => Promise<{ data?: { words?: OcrWord[] } }>;
+  terminate: () => Promise<void>;
+};
+
+type TesseractModule = {
+  createWorker: (language?: string) => Promise<OcrWorker>;
+};
+
 // ---- Setup PDF.js Worker ----
 // PDF.js needs a web worker to process PDFs without freezing the UI.
 // We point it to the worker file from the pdfjs-dist package.
@@ -129,6 +144,91 @@ export function usePdfDocument() {
     []
   );
 
+
+
+  const loadTesseract = useCallback(async (): Promise<TesseractModule> => {
+    const moduleUrl = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js';
+    const mod = (await import(/* @vite-ignore */ moduleUrl)) as unknown as Partial<TesseractModule>;
+
+    if (!mod.createWorker) {
+      throw new Error('OCR engine failed to load.');
+    }
+
+    return mod as TesseractModule;
+  }, []);
+
+  const extractPageWordsWithOcr = useCallback(
+    async (
+      pdfDoc: PDFDocumentProxy,
+      pageIndex: number,
+      globalWordOffset: number
+    ): Promise<PdfPageData> => {
+      const pageNumber = pageIndex + 1;
+      const page = await pdfDoc.getPage(pageNumber);
+      const baseViewport = page.getViewport({ scale: 1.0 });
+      const renderScale = 2;
+      const viewport = page.getViewport({ scale: renderScale });
+
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+
+      if (!context) {
+        page.cleanup();
+        throw new Error('OCR rendering context unavailable.');
+      }
+
+      canvas.width = Math.max(1, Math.floor(viewport.width));
+      canvas.height = Math.max(1, Math.floor(viewport.height));
+
+      await page.render({ canvasContext: context, viewport, canvas } as any).promise;
+
+      const tesseract = await loadTesseract();
+      const worker = await tesseract.createWorker('eng');
+
+      try {
+        const result = await worker.recognize(canvas);
+        const rawWords = result.data?.words ?? [];
+        const words: PdfWord[] = [];
+
+        for (const item of rawWords) {
+          const text = item.text?.trim();
+          const bbox = item.bbox;
+          if (!text || !bbox) continue;
+
+          const wordIndexInPage = words.length;
+          words.push({
+            id: `page-${pageIndex}-word-${wordIndexInPage}`,
+            originalText: text,
+            spokenText: text,
+            pageIndex,
+            wordIndexInPage,
+            globalIndex: globalWordOffset + wordIndexInPage,
+            rect: {
+              left: Math.max(0, bbox.x0 / renderScale),
+              top: Math.max(0, bbox.y0 / renderScale),
+              width: Math.max(1, (bbox.x1 - bbox.x0) / renderScale),
+              height: Math.max(1, (bbox.y1 - bbox.y0) / renderScale),
+            },
+            fontSize: Math.max(10, (bbox.y1 - bbox.y0) / renderScale),
+            fontFamily: 'ocr',
+          });
+        }
+
+        return {
+          pageIndex,
+          pageNumber,
+          originalWidth: baseViewport.width,
+          originalHeight: baseViewport.height,
+          words,
+        };
+      } finally {
+        await worker.terminate();
+        page.cleanup();
+      }
+    },
+    [loadTesseract]
+  );
+
   /**
    * Load a PDF file and extract all text data.
    */
@@ -200,6 +300,40 @@ export function usePdfDocument() {
           }
         }
 
+        const hasEmbeddedText = pages.some((page) => page.words.length > 0);
+
+        if (!hasEmbeddedText) {
+          setLoadingState((prev) => ({
+            ...prev,
+            loadingMessage: 'No text layer found. Running OCR for scanned PDF...',
+            progress: 35,
+          }));
+
+          pages.length = 0;
+          globalWordOffset = 0;
+
+          for (let i = 0; i < totalPages; i++) {
+            const pageProgress = 35 + Math.round((i / totalPages) * 55);
+
+            setLoadingState((prev) => ({
+              ...prev,
+              loadingMessage: `Running OCR on page ${i + 1} of ${totalPages}...`,
+              progress: pageProgress,
+            }));
+
+            const pageData = await extractPageWordsWithOcr(pdfDoc, i, globalWordOffset);
+            pages.push(pageData);
+            globalWordOffset += pageData.words.length;
+
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+          }
+
+          const hasOcrText = pages.some((page) => page.words.length > 0);
+          if (!hasOcrText) {
+            throw new Error('OCR completed but no readable text was found in this PDF.');
+          }
+        }
+
         // ---- Step 4: Build flat word array ----
         setLoadingState((prev) => ({
           ...prev,
@@ -251,6 +385,8 @@ export function usePdfDocument() {
             errorMessage += 'This PDF is password-protected and cannot be opened.';
           } else if (err.message.includes('worker')) {
             errorMessage += 'PDF processing engine failed to load. Try refreshing the page.';
+          } else if (err.message.includes('OCR')) {
+            errorMessage += err.message;
           } else {
             errorMessage += err.message;
           }
@@ -268,7 +404,7 @@ export function usePdfDocument() {
         return false;
       }
     },
-    [extractPageWords]
+    [extractPageWords, extractPageWordsWithOcr]
   );
 
   /**
