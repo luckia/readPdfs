@@ -35,6 +35,11 @@ type TesseractModule = {
   createWorker: (language?: string) => Promise<OcrWorker>;
 };
 
+type TesseractLike = Partial<TesseractModule> & {
+  default?: Partial<TesseractModule>;
+  Tesseract?: Partial<TesseractModule>;
+};
+
 type TesseractGlobal = {
   Tesseract?: TesseractModule;
 };
@@ -172,6 +177,22 @@ export function usePdfDocument() {
 
 
 
+  const resolveTesseractModule = useCallback(
+    (candidate: TesseractLike): TesseractModule | null => {
+      if (candidate.createWorker) {
+        return { createWorker: candidate.createWorker };
+      }
+      if (candidate.default?.createWorker) {
+        return { createWorker: candidate.default.createWorker };
+      }
+      if (candidate.Tesseract?.createWorker) {
+        return { createWorker: candidate.Tesseract.createWorker };
+      }
+      return null;
+    },
+    []
+  );
+
   const loadTesseract = useCallback(async (): Promise<TesseractModule> => {
     const moduleCandidates = [
       (import.meta.env.VITE_TESSERACT_MODULE_URL as string | undefined)?.trim(),
@@ -184,14 +205,22 @@ export function usePdfDocument() {
     for (const moduleUrl of moduleCandidates) {
       try {
         logInfo('Loading OCR module', { moduleUrl });
-        const mod = (await import(/* @vite-ignore */ moduleUrl)) as unknown as Partial<TesseractModule>;
+        const mod = (await import(/* @vite-ignore */ moduleUrl)) as unknown as TesseractLike;
+        const resolvedModule = resolveTesseractModule(mod);
 
-        if (mod.createWorker) {
-          logInfo('OCR module loaded successfully', { moduleUrl });
-          return mod as TesseractModule;
+        if (resolvedModule) {
+          logInfo('OCR module loaded successfully', {
+            moduleUrl,
+            exportStyle: mod.createWorker
+              ? 'named'
+              : mod.default?.createWorker
+              ? 'default'
+              : 'Tesseract',
+          });
+          return resolvedModule;
         }
 
-        failures.push(`${moduleUrl}: createWorker missing`);
+        failures.push(`${moduleUrl}: createWorker missing in named/default/Tesseract exports`);
       } catch (error) {
         logError('Failed to load OCR module candidate', error, { moduleUrl });
         failures.push(`${moduleUrl}: ${(error as Error)?.message ?? 'unknown error'}`);
@@ -207,7 +236,7 @@ export function usePdfDocument() {
     throw new Error(
       `OCR engine failed to load. Please check network access for OCR CDN resources, or set VITE_TESSERACT_MODULE_URL to an accessible mirror. Details: ${failures.join(' | ')}`
     );
-  }, []);
+  }, [resolveTesseractModule]);
 
   const extractPageWordsWithOcr = useCallback(
     async (
