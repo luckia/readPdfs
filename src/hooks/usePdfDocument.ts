@@ -35,6 +35,28 @@ type TesseractModule = {
   createWorker: (language?: string) => Promise<OcrWorker>;
 };
 
+const PDF_LOG_PREFIX = '[usePdfDocument]';
+
+function logInfo(message: string, meta?: Record<string, unknown>) {
+  if (meta) {
+    console.info(PDF_LOG_PREFIX, message, meta);
+    return;
+  }
+  console.info(PDF_LOG_PREFIX, message);
+}
+
+function logError(message: string, error?: unknown, meta?: Record<string, unknown>) {
+  if (meta !== undefined) {
+    console.error(PDF_LOG_PREFIX, message, error, meta);
+    return;
+  }
+  if (error !== undefined) {
+    console.error(PDF_LOG_PREFIX, message, error);
+    return;
+  }
+  console.error(PDF_LOG_PREFIX, message);
+}
+
 // ---- Setup PDF.js Worker ----
 // PDF.js needs a web worker to process PDFs without freezing the UI.
 // We point it to the worker file from the pdfjs-dist package.
@@ -148,11 +170,14 @@ export function usePdfDocument() {
 
   const loadTesseract = useCallback(async (): Promise<TesseractModule> => {
     const moduleUrl = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js';
+    logInfo('Loading OCR module', { moduleUrl });
     const mod = (await import(/* @vite-ignore */ moduleUrl)) as unknown as Partial<TesseractModule>;
 
     if (!mod.createWorker) {
       throw new Error('OCR engine failed to load.');
     }
+
+    logInfo('OCR module loaded successfully');
 
     return mod as TesseractModule;
   }, []);
@@ -164,6 +189,7 @@ export function usePdfDocument() {
       globalWordOffset: number
     ): Promise<PdfPageData> => {
       const pageNumber = pageIndex + 1;
+      logInfo('Starting OCR extraction for page', { pageIndex, pageNumber, globalWordOffset });
       const page = await pdfDoc.getPage(pageNumber);
       const baseViewport = page.getViewport({ scale: 1.0 });
       const renderScale = 2;
@@ -184,6 +210,7 @@ export function usePdfDocument() {
 
       const tesseract = await loadTesseract();
       const worker = await tesseract.createWorker('eng');
+      logInfo('OCR worker created', { pageNumber });
 
       try {
         const result = await worker.recognize(canvas);
@@ -222,8 +249,10 @@ export function usePdfDocument() {
           words,
         };
       } finally {
+        logInfo('Terminating OCR worker', { pageNumber });
         await worker.terminate();
         page.cleanup();
+        logInfo('OCR extraction finished for page', { pageNumber });
       }
     },
     [loadTesseract]
@@ -234,6 +263,10 @@ export function usePdfDocument() {
    */
   const loadPdf = useCallback(
     async (file: File): Promise<boolean> => {
+      logInfo('Starting PDF load', {
+        fileName: file.name,
+        fileSize: file.size,
+      });
       // Reset state
       setLoadingState({
         isLoading: true,
@@ -270,6 +303,7 @@ export function usePdfDocument() {
         pdfDocRef.current = pdfDoc;
 
         const totalPages = pdfDoc.numPages;
+        logInfo('PDF document loaded', { totalPages, fileName: file.name });
 
         setLoadingState((prev) => ({
           ...prev,
@@ -293,6 +327,10 @@ export function usePdfDocument() {
           const pageData = await extractPageWords(pdfDoc, i, globalWordOffset);
           pages.push(pageData);
           globalWordOffset += pageData.words.length;
+          logInfo('Text-layer extraction completed for page', {
+            pageNumber: i + 1,
+            extractedWords: pageData.words.length,
+          });
 
           // Yield to main thread every page to keep UI responsive
           if (i % 1 === 0) {
@@ -301,6 +339,10 @@ export function usePdfDocument() {
         }
 
         const hasEmbeddedText = pages.some((page) => page.words.length > 0);
+        logInfo('Embedded text extraction summary', {
+          hasEmbeddedText,
+          totalExtractedWords: pages.reduce((sum, page) => sum + page.words.length, 0),
+        });
 
         if (!hasEmbeddedText) {
           setLoadingState((prev) => ({
@@ -324,6 +366,10 @@ export function usePdfDocument() {
             const pageData = await extractPageWordsWithOcr(pdfDoc, i, globalWordOffset);
             pages.push(pageData);
             globalWordOffset += pageData.words.length;
+            logInfo('OCR extraction completed for page', {
+              pageNumber: i + 1,
+              extractedWords: pageData.words.length,
+            });
 
             await new Promise((resolve) => requestAnimationFrame(resolve));
           }
@@ -363,6 +409,12 @@ export function usePdfDocument() {
           fileSize: file.size,
         };
 
+        logInfo('PDF processing complete', {
+          totalPages,
+          totalWords: docData.totalWordCount,
+          estimatedReadTime: docData.estimatedReadTime,
+        });
+
         // ---- Step 5: Done! ----
         setPdfData(docData);
         setLoadingState({
@@ -374,7 +426,10 @@ export function usePdfDocument() {
 
         return true;
       } catch (err) {
-        console.error('PDF loading error:', err);
+        logError('PDF loading error', err, {
+          fileName: file.name,
+          fileSize: file.size,
+        });
 
         let errorMessage = 'Failed to load PDF. ';
 
