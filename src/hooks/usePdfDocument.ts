@@ -35,6 +35,10 @@ type TesseractModule = {
   createWorker: (language?: string) => Promise<OcrWorker>;
 };
 
+type TesseractGlobal = {
+  Tesseract?: TesseractModule;
+};
+
 const PDF_LOG_PREFIX = '[usePdfDocument]';
 
 function logInfo(message: string, meta?: Record<string, unknown>) {
@@ -169,17 +173,40 @@ export function usePdfDocument() {
 
 
   const loadTesseract = useCallback(async (): Promise<TesseractModule> => {
-    const moduleUrl = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js';
-    logInfo('Loading OCR module', { moduleUrl });
-    const mod = (await import(/* @vite-ignore */ moduleUrl)) as unknown as Partial<TesseractModule>;
+    const moduleCandidates = [
+      (import.meta.env.VITE_TESSERACT_MODULE_URL as string | undefined)?.trim(),
+      'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js',
+      'https://unpkg.com/tesseract.js@5/dist/tesseract.esm.min.js',
+    ].filter((url): url is string => Boolean(url));
 
-    if (!mod.createWorker) {
-      throw new Error('OCR engine failed to load.');
+    const failures: string[] = [];
+
+    for (const moduleUrl of moduleCandidates) {
+      try {
+        logInfo('Loading OCR module', { moduleUrl });
+        const mod = (await import(/* @vite-ignore */ moduleUrl)) as unknown as Partial<TesseractModule>;
+
+        if (mod.createWorker) {
+          logInfo('OCR module loaded successfully', { moduleUrl });
+          return mod as TesseractModule;
+        }
+
+        failures.push(`${moduleUrl}: createWorker missing`);
+      } catch (error) {
+        logError('Failed to load OCR module candidate', error, { moduleUrl });
+        failures.push(`${moduleUrl}: ${(error as Error)?.message ?? 'unknown error'}`);
+      }
     }
 
-    logInfo('OCR module loaded successfully');
+    const globalTesseract = (window as unknown as TesseractGlobal).Tesseract;
+    if (globalTesseract?.createWorker) {
+      logInfo('Using OCR module from window.Tesseract fallback');
+      return globalTesseract;
+    }
 
-    return mod as TesseractModule;
+    throw new Error(
+      `OCR engine failed to load. Please check network access for OCR CDN resources, or set VITE_TESSERACT_MODULE_URL to an accessible mirror. Details: ${failures.join(' | ')}`
+    );
   }, []);
 
   const extractPageWordsWithOcr = useCallback(
