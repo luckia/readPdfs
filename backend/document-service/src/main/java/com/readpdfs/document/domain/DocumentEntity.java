@@ -25,6 +25,18 @@ public class DocumentEntity {
   @Column(nullable = false, length = 64)
   private String status;
 
+  @Column(nullable = false, length = 512)
+  private String storageKey;
+
+  @Column(nullable = false, length = 128)
+  private String contentType;
+
+  @Column(nullable = false, length = 32)
+  private String source;
+
+  @Column(nullable = false, length = 32)
+  private String uploadStatus;
+
   @Column(nullable = false)
   private OffsetDateTime createdAt;
 
@@ -38,6 +50,14 @@ public class DocumentEntity {
   public void setFileSize(long fileSize) { this.fileSize = fileSize; }
   public String getStatus() { return status; }
   public void setStatus(String status) { this.status = status; }
+  public String getStorageKey() { return storageKey; }
+  public void setStorageKey(String storageKey) { this.storageKey = storageKey; }
+  public String getContentType() { return contentType; }
+  public void setContentType(String contentType) { this.contentType = contentType; }
+  public String getSource() { return source; }
+  public void setSource(String source) { this.source = source; }
+  public String getUploadStatus() { return uploadStatus; }
+  public void setUploadStatus(String uploadStatus) { this.uploadStatus = uploadStatus; }
   public OffsetDateTime getCreatedAt() { return createdAt; }
   public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
   public OffsetDateTime getUpdatedAt() { return updatedAt; }

@@ -1,4 +1,4 @@
-# Backend Task A Skeleton
+# Backend Task A/B Skeleton
 
 ## Modules
 - common-contract
@@ -11,7 +11,23 @@
 ```bash
 cd backend
 mvn clean test
-mvn -pl bff-service,document-service,extraction-service,ocr-worker-service -am spring-boot:run
+mvn -pl document-service -am spring-boot:run
+```
+
+## Task B API smoke test
+```bash
+# Upload PDF metadata (document-service on 8081)
+curl -X POST http://localhost:8081/api/v1/documents \
+  -F "file=@/absolute/path/to/sample.pdf;type=application/pdf"
+
+# Query by id
+curl http://localhost:8081/api/v1/documents/{id}
+```
+
+## Frontend integration
+Set optional frontend env to point to document-service:
+```bash
+VITE_DOCUMENT_SERVICE_URL=http://localhost:8081
 ```
 
 ## Docker Compose
