@@ -1,0 +1,64 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: readpdfs-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: readpdfs
+      MYSQL_PASSWORD: readpdfs
+      MYSQL_DATABASE: readpdfs_document
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  bff-service:
+    build:
+      context: .
+      dockerfile: bff-service/Dockerfile
+    container_name: readpdfs-bff
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+
+  document-service:
+    build:
+      context: .
+      dockerfile: document-service/Dockerfile
+    container_name: readpdfs-document
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/readpdfs_document?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: readpdfs
+      DB_PASSWORD: readpdfs
+    ports:
+      - "8081:8080"
+    depends_on:
+      - mysql
+
+  extraction-service:
+    build:
+      context: .
+      dockerfile: extraction-service/Dockerfile
+    container_name: readpdfs-extraction
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/readpdfs_extraction?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: readpdfs
+      DB_PASSWORD: readpdfs
+    ports:
+      - "8082:8080"
+    depends_on:
+      - mysql
+
+  ocr-worker-service:
+    build:
+      context: .
+      dockerfile: ocr-worker-service/Dockerfile
+    container_name: readpdfs-ocr-worker
+    ports:
+      - "8083:8080"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
