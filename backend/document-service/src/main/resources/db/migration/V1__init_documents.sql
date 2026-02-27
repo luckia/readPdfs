@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS documents (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  file_name VARCHAR(255) NOT NULL,
+  file_size BIGINT NOT NULL,
+  status VARCHAR(64) NOT NULL,
+  created_at DATETIME(6) NOT NULL,
+  updated_at DATETIME(6) NOT NULL
+);

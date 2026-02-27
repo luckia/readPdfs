@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS extraction_jobs (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  document_id BIGINT NOT NULL,
+  status VARCHAR(64) NOT NULL,
+  created_at DATETIME(6) NOT NULL,
+  updated_at DATETIME(6) NOT NULL
+);

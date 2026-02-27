@@ -33,6 +33,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ZoomControls, { MIN_ZOOM, MAX_ZOOM, ZOOM_STEP } from './components/ZoomControls';
 import { BookOpen, HelpCircle, FileUp, Github, Mail } from 'lucide-react';
 import logo from './assets/logo.png';
+import { uploadDocument, triggerExtraction, getTaskStatus } from './api/documentApi';
 
 export default function App() {
   const theme = useTheme();
@@ -74,8 +75,33 @@ export default function App() {
   }, []);
 
   const handleFileSelect = useCallback(
-    async (file: File) => { await pdf.loadPdf(file); },
-    [pdf]
+    async (file: File) => {
+      try {
+        const uploaded = await uploadDocument(file);
+        toast.success(`Uploaded ${uploaded.fileName} (${uploaded.status})`, '☁️');
+
+        await triggerExtraction(uploaded.documentId);
+        toast.info('Text-layer extraction started', '🧠');
+
+        let latestProgress = -1;
+        for (let i = 0; i < 12; i++) {
+          const task = await getTaskStatus(uploaded.taskId);
+          if (task.progress !== latestProgress) {
+            latestProgress = task.progress;
+            toast.info(`Extraction ${task.progress}% - ${task.message}`, '📄', 1200);
+          }
+          if (task.progress >= 100 || task.status === 'READY') {
+            toast.success('Extraction completed. Player logic remains unchanged.', '✅');
+            break;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 600));
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to upload PDF.';
+        toast.error(message);
+      }
+    },
+    [toast]
   );
 
   useEffect(() => {
