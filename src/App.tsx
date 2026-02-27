@@ -33,6 +33,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ZoomControls, { MIN_ZOOM, MAX_ZOOM, ZOOM_STEP } from './components/ZoomControls';
 import { BookOpen, HelpCircle, FileUp, Github, Mail } from 'lucide-react';
 import logo from './assets/logo.png';
+import { uploadDocument } from './api/documentApi';
 
 export default function App() {
   const theme = useTheme();
@@ -74,8 +75,16 @@ export default function App() {
   }, []);
 
   const handleFileSelect = useCallback(
-    async (file: File) => { await pdf.loadPdf(file); },
-    [pdf]
+    async (file: File) => {
+      try {
+        const uploaded = await uploadDocument(file);
+        toast.success(`Uploaded ${uploaded.fileName} (${uploaded.status})`, '☁️');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to upload PDF.';
+        toast.error(message);
+      }
+    },
+    [toast]
   );
 
   useEffect(() => {
