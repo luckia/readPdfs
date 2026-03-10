@@ -9,16 +9,24 @@ export type UploadedDocument = {
 
 const DOCUMENT_SERVICE_BASE_URL =
   (import.meta.env.VITE_DOCUMENT_SERVICE_URL as string | undefined)?.trim() ||
-  'http://localhost:8081';
+  '';
 
 export async function uploadDocument(file: File): Promise<UploadedDocument> {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(`${DOCUMENT_SERVICE_BASE_URL}/api/v1/documents`, {
-    method: 'POST',
-    body: formData,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${DOCUMENT_SERVICE_BASE_URL}/api/v1/documents`, {
+      method: 'POST',
+      body: formData,
+    });
+  } catch {
+    throw new Error(
+      '无法连接到文档服务。请先启动后端服务，或检查 VITE_DOCUMENT_SERVICE_URL 配置。'
+    );
+  }
 
   if (!response.ok) {
     const message = await response.text();
