@@ -22,10 +22,9 @@ export async function uploadDocument(file: File): Promise<UploadedDocument> {
       method: 'POST',
       body: formData,
     });
-  } catch (error) {
-    const detail = error instanceof Error && error.message ? ` (${error.message})` : '';
+  } catch {
     throw new Error(
-      `无法连接到文档服务 ${DOCUMENT_SERVICE_BASE_URL}。请先启动后端服务，或检查 VITE_DOCUMENT_SERVICE_URL 配置。${detail}`
+      '无法连接到文档服务。请先启动后端服务，或检查 VITE_DOCUMENT_SERVICE_URL 配置。'
     );
   }
 
