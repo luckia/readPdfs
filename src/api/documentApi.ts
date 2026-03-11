@@ -9,7 +9,7 @@ export type UploadedDocument = {
 
 const DOCUMENT_SERVICE_BASE_URL =
   (import.meta.env.VITE_DOCUMENT_SERVICE_URL as string | undefined)?.trim() ||
-  'http://localhost:8081';
+  '';
 
 export async function uploadDocument(file: File): Promise<UploadedDocument> {
   const formData = new FormData();
